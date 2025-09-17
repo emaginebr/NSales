@@ -401,6 +401,6 @@
 /Backend/NSales/*.sln.iml
 /Backend/NSales/NSales.API/bin
 /Backend/NSales/NSales.API/obj
-/createContext.bat
 /Backend/NSales/NSales.API/appsettings.Development.json
 /Backend/NSales/NSales.API/appsettings.Docker.json
+/sbin/createContext.bat

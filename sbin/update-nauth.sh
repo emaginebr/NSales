@@ -1,5 +1,5 @@
 #!/bin/bash
-cd ../NAuth/Backend/NAuth
+cd ../../NAuth/Backend/NAuth
 pwd
 dotnet build -c Release NAuth.sln
 cd ./NAuth.ACL/bin/Release/net8.0

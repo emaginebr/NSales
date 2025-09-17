@@ -1,0 +1,4 @@
+@echo off
+cd ..\Backend\MonexUp\DB.Infra
+dotnet ef dbcontext scaffold "Host=localhost;Port=5432;Database=nsales;Username=postgres;Password=1234" Npgsql.EntityFrameworkCore.PostgreSQL --context NSalesContext --output-dir Context -f
+pause
