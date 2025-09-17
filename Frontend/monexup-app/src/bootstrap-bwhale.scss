@@ -1,0 +1,264 @@
+//@import "mixins/banner";
+//@include bsBanner("");
+
+
+// scss-docs-start import-stack
+// Configuration
+@import "../node_modules/bootstrap/scss/functions";
+
+$white: #fff;
+$gray-100: #f8f9fa;
+$gray-200: #eee;
+$gray-300: #dee2e6;
+$gray-400: #ced4da;
+$gray-500: #999;
+$gray-600: #777;
+$gray-700: #495057;
+$gray-800: #333;
+$gray-900: #2d2d2d;
+$black: #000;
+$blue: #446E9B;
+$indigo: #6610f2;
+$purple: #6f42c1;
+$pink: #e83e8c;
+$red: #CD0200;
+$orange: #fd7e14;
+$yellow: #D47500;
+$green: #3CB521;
+$teal: #20c997;
+$cyan: #3399F3;
+$primary: $blue;
+$secondary: $gray-500;
+$success: $green;
+$info: $cyan;
+$warning: $yellow;
+$danger: $red;
+$light: $gray-200;
+$dark: $gray-800;
+$body-color: $gray-600;
+$headings-color: $gray-900;
+$navbar-dark-color: rgba($white,.75);
+$navbar-dark-hover-color: $white;
+
+$card-bg: #3f4448;
+
+@import "../node_modules/bootstrap/scss/variables";
+@import "../node_modules/bootstrap/scss/variables-dark";
+@import "../node_modules/bootstrap/scss/maps";
+@import "../node_modules/bootstrap/scss/mixins";
+@import "../node_modules/bootstrap/scss/utilities";
+
+// Layout & components
+@import "../node_modules/bootstrap/scss/root";
+@import "../node_modules/bootstrap/scss/reboot";
+@import "../node_modules/bootstrap/scss/type";
+@import "../node_modules/bootstrap/scss/images";
+@import "../node_modules/bootstrap/scss/containers";
+@import "../node_modules/bootstrap/scss/grid";
+@import "../node_modules/bootstrap/scss/tables";
+@import "../node_modules/bootstrap/scss/forms";
+@import "../node_modules/bootstrap/scss/buttons";
+@import "../node_modules/bootstrap/scss/transitions";
+@import "../node_modules/bootstrap/scss/dropdown";
+@import "../node_modules/bootstrap/scss/button-group";
+@import "../node_modules/bootstrap/scss/nav";
+@import "../node_modules/bootstrap/scss/navbar";
+@import "../node_modules/bootstrap/scss/card";
+@import "../node_modules/bootstrap/scss/accordion";
+@import "../node_modules/bootstrap/scss/breadcrumb";
+@import "../node_modules/bootstrap/scss/pagination";
+@import "../node_modules/bootstrap/scss/badge";
+@import "../node_modules/bootstrap/scss/alert";
+@import "../node_modules/bootstrap/scss/progress";
+@import "../node_modules/bootstrap/scss/list-group";
+@import "../node_modules/bootstrap/scss/close";
+@import "../node_modules/bootstrap/scss/toasts";
+@import "../node_modules/bootstrap/scss/modal";
+@import "../node_modules/bootstrap/scss/tooltip";
+@import "../node_modules/bootstrap/scss/popover";
+@import "../node_modules/bootstrap/scss/carousel";
+@import "../node_modules/bootstrap/scss/spinners";
+@import "../node_modules/bootstrap/scss/offcanvas";
+@import "../node_modules/bootstrap/scss/placeholders";
+
+// Helpers
+@import "../node_modules/bootstrap/scss/helpers";
+
+// Utilities
+@import "../node_modules/bootstrap/scss/utilities/api";
+// scss-docs-end import-stack
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-image: url(/public/whale-bg.png);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: fixed;
+}
+
+a.navbar-brand {
+  display: block;
+  width: 175px;
+  height: 59px;
+  background-image: url(/public/big-whale-logo.png);
+  background-size: cover;
+  background-repeat: no-repeat;
+  content:"";
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+.btn-circle {
+  width: 30px;
+  height: 30px;
+  text-align: center;
+  padding: 6px 0;
+  font-size: 12px;
+  line-height: 1.428571429;
+  border-radius: 15px;
+}
+.btn-circle.btn-lg {
+  width: 50px;
+  height: 50px;
+  padding: 10px 16px;
+  font-size: 18px;
+  line-height: 1.33;
+  border-radius: 25px;
+}
+.btn-circle.btn-xl {
+  width: 70px;
+  height: 70px;
+  padding: 10px 16px;
+  font-size: 24px;
+  line-height: 1.33;
+  border-radius: 35px;
+}
+
+.btn-primary,
+.btn-primary:hover,
+.btn-success,
+.btn-success:hover,
+.btn-danger,
+.btn-danger:hover {
+    color: #fff;
+}
+
+footer a {
+    text-decoration: none;
+    color: #fff;
+}
+
+footer a:hover {
+    text-decoration: underline;
+    color: #fff;
+}
+
+// Spacelab 4.3.1
+// Bootswatch
+
+
+// Variables ===================================================================
+
+$web-font-path: "https://fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,400,700" !default;
+@import url($web-font-path);
+
+@mixin btn-shadow($color){
+  @include gradient-y-three-colors(lighten($color, 15%), $color, 50%, darken($color, 4%));
+  filter: none;
+  border: 1px solid darken($color, 10%);
+}
+
+// Navbar ======================================================================
+
+.navbar {
+
+  .nav-link,
+  .navbar-brand {
+    text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.1);
+    transition: color ease-in-out .2s;
+  }
+
+  &.bg-primary {
+    @include btn-shadow(map-get($theme-colors, "primary"));
+  }
+
+  &.bg-dark {
+    @include btn-shadow(map-get($theme-colors, "secondary"));
+  }
+
+  &.bg-light {
+    @include btn-shadow(map-get($theme-colors, "light"));
+
+    .nav-link,
+    .navbar-brand {
+      text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.1);
+    }
+
+    .navbar-brand {
+      color: $navbar-light-color;
+
+      &:hover {
+        color: $info;
+      }
+    }
+  }
+}
+
+// Buttons =====================================================================
+
+.btn {
+  text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.1);
+
+  &-link {
+    text-shadow: none;
+  }
+}
+
+@each $color, $value in $theme-colors {
+  .btn-#{$color} {
+    @include btn-shadow($value);
+  }
+
+  .btn-#{$color}:not(.disabled):hover {
+    @include btn-shadow(darken($value, 4%));
+  }
+}
+
+[class*="btn-outline-"] {
+  text-shadow: none;
+}
+
+// Typography ==================================================================
+
+// Tables ======================================================================
+
+// Forms =======================================================================
+
+// Navs ========================================================================
+
+// Indicators ==================================================================
+
+.badge {
+
+  &-secondary {
+    color: $white;
+  }
+}
+
+// Progress bars ===============================================================
+
+// Containers ==================================================================
+
+.card,
+.list-group-item {
+  h1, h2, h3, h4, h5, h6 {
+    color: inherit;
+  }
+}

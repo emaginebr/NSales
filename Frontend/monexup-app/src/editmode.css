@@ -1,0 +1,48 @@
+.editmode {
+  border-width: 3px;
+  border-style: dashed;
+  border-color: red;
+  margin-right: 3px;
+  margin-left: 3px;
+  margin-bottom: 5px;
+  position: relative;
+}
+.editmode-new {
+  border-width: 3px;
+  border-style: dashed;
+  border-color: red;
+  margin-right: 3px;
+  margin-left: 3px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  margin-bottom: 5px;
+  position: relative;
+}
+
+.editmode-bar {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 9999;
+}
+
+.editmode-text {
+  border-width: 3px;
+  border-style: dashed;
+  border-color: red;
+  cursor: hand;
+}
+
+.editmode-img {
+  border-width: 3px;
+  border-style: dashed;
+  border-color: red;
+  position: relative;
+}
+
+.editmode-upload-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 9999;
+}

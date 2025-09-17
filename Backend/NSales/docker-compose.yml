@@ -1,0 +1,65 @@
+version: "3.9"
+services:
+  nginx-proxy:
+    image: nginx-proxy
+    ports:
+      - "8081:80"
+    expose:
+      - "8081"
+    build:
+      context: .
+      dockerfile: Dockerfile-nginx
+  goblin-api:
+    image: goblin-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - ASPNETCORE_URLS=http://+:80
+    ports:
+      - "4041:80"
+    expose:
+      - "4041"
+    build:
+      context: .
+      dockerfile: Goblin.API/Dockerfile
+    depends_on:
+      - "nginx-proxy"
+  auth-api:
+    image: auth-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - ASPNETCORE_URLS=http://+:80
+    ports:
+      - "4042:80"
+    expose:
+      - "4042"
+    build:
+      context: .
+      dockerfile: Auth.API/Dockerfile
+    depends_on:
+      - "nginx-proxy"
+  gw-background:
+    image: gw-background
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - ASPNETCORE_URLS=http://+:80
+    ports:
+      - "5001:80"
+    expose:
+      - "5001"
+    build:
+      context: .
+      dockerfile: GoblinWars.BackgroundService/Dockerfile
+  equipments-api:
+    image: equipments-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - ASPNETCORE_URLS=http://+:80
+    ports:
+      - "4043:80"
+    expose:
+      - "4043"
+    build:
+      context: .
+      dockerfile: Equipment.API/Dockerfile
+    depends_on:
+      - "nginx-proxy"

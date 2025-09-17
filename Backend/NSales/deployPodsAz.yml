@@ -1,0 +1,67 @@
+﻿api-version: 2019-12-01
+location: eastus
+name: goblin-wars
+properties:
+  containers:
+  - name: nginx-proxy
+    properties:
+      image: registrygw.azurecr.io/nginx-proxy:latest
+      ports:
+      - port: 443
+        protocol: TCP
+      resources:
+        requests:
+          cpu: 1.0
+          memoryInGB: 0.5
+  - name: auth-api
+    properties:
+      environmentVariables:
+        - name: 'ASPNETCORE_ENVIRONMENT'
+          value: 'Azure'
+        - name: 'ASPNETCORE_URLS'
+          value: 'http://+:4042'
+      image: registrygw.azurecr.io/auth-api:latest
+      ports:
+      - port: 4042
+        protocol: TCP
+      resources:
+        requests:
+          cpu: 1.0
+          memoryInGB: 0.5
+  - name: goblin-api
+    properties:
+      environmentVariables:
+        - name: 'ASPNETCORE_ENVIRONMENT'
+          value: 'Azure'
+        - name: 'ASPNETCORE_URLS'
+          value: 'http://+:4043'
+      image: registrygw.azurecr.io/goblin-api
+      ports:
+      - port: 4043
+        protocol: TCP
+      resources:
+        requests:
+          cpu: 1.0
+          memoryInGB: 2.0
+  - name: goblinwars-app
+    properties:
+      image: registrygw.azurecr.io/goblinwars-app:latest
+      ports:
+      - port: 80
+        protocol: TCP
+      resources:
+        requests:
+          cpu: 1.0
+          memoryInGB: 1.0
+  ipAddress:
+    ports:
+    - port: 443
+      protocol: TCP
+    type: Public
+  osType: Linux
+  imageRegistryCredentials: 
+  - server: registrygw.azurecr.io
+    username: registrygw
+    password: iAoZHs4+asYGJ1Bs3NHIhN2OX3yECvMP
+tags: null
+type: Microsoft.ContainerInstance/containerGroups

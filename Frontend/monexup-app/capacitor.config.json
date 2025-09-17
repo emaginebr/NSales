@@ -1,0 +1,8 @@
+{
+    "appId": "com.monexup.monexupapp",
+    "appName": "MonexUp App",
+    "bundledWebRuntime": false,
+    "npmClient": "npm",
+    "webDir": "build",
+    "cordova": {}
+  }

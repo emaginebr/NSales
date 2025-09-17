@@ -1,0 +1,6 @@
+FROM nginx
+
+COPY ssl.crt /etc/nginx
+COPY ssl.key /etc/nginx
+COPY default.conf /etc/nginx/conf.d
+    
