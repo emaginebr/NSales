@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-NSales (MonexUp) is a full-stack sales/e-commerce platform with a .NET 8 backend API and a React 18 TypeScript frontend. It supports multi-tenant networks with sellers, products, orders, and invoices.
+Lofn (MonexUp) is a full-stack sales/e-commerce platform with a .NET 8 backend API and a React 18 TypeScript frontend. It supports multi-tenant networks with sellers, products, orders, and invoices.
 
 ## Commands
 
@@ -17,9 +17,9 @@ npm test           # Jest tests in watch mode
 
 ### Backend (.NET 8 - from repo root)
 ```bash
-dotnet build NSales.sln                          # Build entire solution
-dotnet run --project NSales.API                  # Run API (https://localhost:44374)
-dotnet run --project NSales.BackgroundService    # Run background jobs
+dotnet build Lofn.sln                          # Build entire solution
+dotnet run --project Lofn.API                  # Run API (https://localhost:44374)
+dotnet run --project Lofn.BackgroundService    # Run background jobs
 ```
 
 ### Docker
@@ -32,24 +32,24 @@ docker-compose up        # Starts nginx-proxy (8081) + API services
 ### Backend - Clean Architecture (.NET 8)
 
 ```
-NSales.API              → Controllers, Startup/DI config, auth middleware
-NSales.Application      → DI initializer, wires up services
-NSales.Domain           → Business logic, service interfaces/impls, factories, models
-NSales.DTO              → Data transfer objects shared across layers
-NSales.BackgroundService → Scheduled background jobs
-NSales.ACL              → Anti-corruption layer (external API adapters)
-Core.Domain             → Base/shared domain abstractions
-DB.Infra                → EF Core 9 DbContext (NSalesContext), repositories, Unit of Work
+Lofn.API              → Controllers, Startup/DI config, auth middleware
+Lofn.Application      → DI bootstrap (Startup.cs), wires up services via ConfigureLofn()
+Lofn.Domain           → Business logic: Models/, Services/, Core/, Interfaces/
+Lofn.DTO              → Data transfer objects shared across layers
+Lofn.BackgroundService → Scheduled background jobs
+Lofn.ACL              → Anti-corruption layer (external API adapters)
+Lofn.Infra.Interfaces → Infrastructure abstractions (IUnitOfWork, Repository interfaces)
+Lofn.Infra            → EF Core 9 DbContext (LofnContext), repositories, Unit of Work
 Lib/                    → External DLLs: NAuth.ACL, NAuth.DTO, NTools.ACL, NTools.DTO
 ```
 
-**Dependency flow:** API → Application → Domain → DB.Infra → PostgreSQL (Npgsql)
+**Dependency flow:** API → Application → Domain → Lofn.Infra → PostgreSQL (Npgsql)
 
 **Key patterns:**
-- Repository + Unit of Work (DB.Infra)
+- Repository + Unit of Work (Lofn.Infra)
 - EF Core with lazy loading proxies
 - Custom `RemoteAuthHandler` for Bearer token auth (delegates to NAuth)
-- DI registration centralized in `NSales.Application/Initializer.cs`
+- DI registration centralized in `Lofn.Application/Startup.cs` via `ConfigureLofn()` extension method
 
 ### Frontend - Layered React (src/)
 

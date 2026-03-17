@@ -1,0 +1,82 @@
+name: Publish NuGet Package
+
+on:
+  workflow_run:
+    workflows: ["Version and Tag"]
+    types:
+      - completed
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  CONFIGURATION: Release
+
+jobs:
+  publish-nuget:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v0.10.2
+      with:
+        versionSpec: '5.x'
+
+    - name: Determine Version
+      id: gitversion
+      uses: gittools/actions/gitversion/execute@v0.10.2
+      with:
+        useConfigFile: true
+        configFilePath: GitVersion.yml
+
+    - name: Display Version
+      run: |
+        echo "Building and publishing version: ${{ steps.gitversion.outputs.nuGetVersionV2 }}"
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build NAuth
+      run: dotnet build NAuth/NAuth.csproj --configuration ${{ env.CONFIGURATION }} --no-restore /p:Version=${{ steps.gitversion.outputs.nuGetVersionV2 }}
+
+    - name: Pack NAuth
+      run: dotnet pack NAuth/NAuth.csproj --configuration ${{ env.CONFIGURATION }} --no-build --output ./artifacts /p:PackageVersion=${{ steps.gitversion.outputs.nuGetVersionV2 }}
+
+    - name: Publish NAuth to NuGet
+      run: dotnet nuget push ./artifacts/NAuth.${{ steps.gitversion.outputs.nuGetVersionV2 }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+      continue-on-error: false
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: nuget-packages
+        path: ./artifacts/*.nupkg
+        retention-days: 30
+
+    - name: Summary
+      run: |
+        echo "## NuGet Package Published" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### NAuth" >> $GITHUB_STEP_SUMMARY
+        echo "- Version: \`${{ steps.gitversion.outputs.nuGetVersionV2 }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- Package: [NAuth on NuGet](https://www.nuget.org/packages/NAuth/${{ steps.gitversion.outputs.nuGetVersionV2 }})" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Version Information" >> $GITHUB_STEP_SUMMARY
+        echo "- SemVer: \`${{ steps.gitversion.outputs.semVer }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- Full SemVer: \`${{ steps.gitversion.outputs.fullSemVer }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- Commit: \`${{ steps.gitversion.outputs.sha }}\`" >> $GITHUB_STEP_SUMMARY

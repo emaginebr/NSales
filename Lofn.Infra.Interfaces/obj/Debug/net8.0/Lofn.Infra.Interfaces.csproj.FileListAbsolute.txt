@@ -1,0 +1,13 @@
+C:\repos\NSales\Lofn.Infra.Interfaces\bin\Debug\net8.0\Lofn.Infra.Interfaces.deps.json
+C:\repos\NSales\Lofn.Infra.Interfaces\bin\Debug\net8.0\Lofn.Infra.Interfaces.dll
+C:\repos\NSales\Lofn.Infra.Interfaces\bin\Debug\net8.0\Lofn.Infra.Interfaces.pdb
+C:\repos\NSales\Lofn.Infra.Interfaces\obj\Debug\net8.0\Lofn.Infra.Interfaces.csproj.AssemblyReference.cache
+C:\repos\NSales\Lofn.Infra.Interfaces\obj\Debug\net8.0\Lofn.Infra.Interfaces.GeneratedMSBuildEditorConfig.editorconfig
+C:\repos\NSales\Lofn.Infra.Interfaces\obj\Debug\net8.0\Lofn.Infra.Interfaces.AssemblyInfoInputs.cache
+C:\repos\NSales\Lofn.Infra.Interfaces\obj\Debug\net8.0\Lofn.Infra.Interfaces.AssemblyInfo.cs
+C:\repos\NSales\Lofn.Infra.Interfaces\obj\Debug\net8.0\Lofn.Infra.Interfaces.csproj.CoreCompileInputs.cache
+C:\repos\NSales\Lofn.Infra.Interfaces\obj\Debug\net8.0\Lofn.Infra.Interfaces.sourcelink.json
+C:\repos\NSales\Lofn.Infra.Interfaces\obj\Debug\net8.0\Lofn.Infra.Interfaces.dll
+C:\repos\NSales\Lofn.Infra.Interfaces\obj\Debug\net8.0\refint\Lofn.Infra.Interfaces.dll
+C:\repos\NSales\Lofn.Infra.Interfaces\obj\Debug\net8.0\Lofn.Infra.Interfaces.pdb
+C:\repos\NSales\Lofn.Infra.Interfaces\obj\Debug\net8.0\ref\Lofn.Infra.Interfaces.dll

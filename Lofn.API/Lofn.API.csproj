@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <UserSecretsId>c8dba4a6-691e-49a3-9dc5-660ceee25458</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="DTOs\**" />
+    <Content Remove="DTOs\**" />
+    <EmbeddedResource Remove="DTOs\**" />
+    <None Remove="DTOs\**" />
+    <None Remove="DTO\" />
+    <None Remove="Lofn.com.pfx" />
+    <None Remove="nochainswap.org.pfx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="9.0.8" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
+    <PackageReference Include="NAuth" Version="0.5.2" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Lofn.Infra.Interfaces\Lofn.Infra.Interfaces.csproj" />
+    <ProjectReference Include="..\Lofn.Application\Lofn.Application.csproj" />
+    <ProjectReference Include="..\Lofn.Domain\Lofn.Domain.csproj" />
+    <ProjectReference Include="..\Lofn.DTO\Lofn.DTO.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Controllers\OriginalController.cs" />
+  </ItemGroup>
+
+</Project>

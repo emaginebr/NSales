@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "kqwqg/EptmU=",
+  "success": true,
+  "projectFilePath": "C:\\repos\\NSales\\Lofn.Infra.Interfaces\\Lofn.Infra.Interfaces.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\rodri\\.nuget\\packages\\microsoft.win32.systemevents\\9.0.8\\microsoft.win32.systemevents.9.0.8.nupkg.sha512",
+    "C:\\Users\\rodri\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512",
+    "C:\\Users\\rodri\\.nuget\\packages\\system.drawing.common\\9.0.8\\system.drawing.common.9.0.8.nupkg.sha512"
+  ],
+  "logs": []
+}

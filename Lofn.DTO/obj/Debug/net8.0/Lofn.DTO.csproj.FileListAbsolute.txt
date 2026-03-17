@@ -1,0 +1,13 @@
+C:\repos\NSales\Lofn.DTO\bin\Debug\net8.0\Lofn.DTO.deps.json
+C:\repos\NSales\Lofn.DTO\bin\Debug\net8.0\Lofn.DTO.dll
+C:\repos\NSales\Lofn.DTO\bin\Debug\net8.0\Lofn.DTO.pdb
+C:\repos\NSales\Lofn.DTO\obj\Debug\net8.0\Lofn.DTO.csproj.AssemblyReference.cache
+C:\repos\NSales\Lofn.DTO\obj\Debug\net8.0\Lofn.DTO.GeneratedMSBuildEditorConfig.editorconfig
+C:\repos\NSales\Lofn.DTO\obj\Debug\net8.0\Lofn.DTO.AssemblyInfoInputs.cache
+C:\repos\NSales\Lofn.DTO\obj\Debug\net8.0\Lofn.DTO.AssemblyInfo.cs
+C:\repos\NSales\Lofn.DTO\obj\Debug\net8.0\Lofn.DTO.csproj.CoreCompileInputs.cache
+C:\repos\NSales\Lofn.DTO\obj\Debug\net8.0\Lofn.DTO.sourcelink.json
+C:\repos\NSales\Lofn.DTO\obj\Debug\net8.0\Lofn.DTO.dll
+C:\repos\NSales\Lofn.DTO\obj\Debug\net8.0\refint\Lofn.DTO.dll
+C:\repos\NSales\Lofn.DTO\obj\Debug\net8.0\Lofn.DTO.pdb
+C:\repos\NSales\Lofn.DTO\obj\Debug\net8.0\ref\Lofn.DTO.dll

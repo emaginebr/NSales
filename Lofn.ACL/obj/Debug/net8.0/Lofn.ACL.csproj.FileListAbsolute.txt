@@ -1,0 +1,16 @@
+C:\repos\NSales\Lofn.ACL\bin\Debug\net8.0\Lofn.ACL.deps.json
+C:\repos\NSales\Lofn.ACL\bin\Debug\net8.0\Lofn.ACL.dll
+C:\repos\NSales\Lofn.ACL\bin\Debug\net8.0\Lofn.ACL.pdb
+C:\repos\NSales\Lofn.ACL\bin\Debug\net8.0\Lofn.DTO.dll
+C:\repos\NSales\Lofn.ACL\bin\Debug\net8.0\Lofn.DTO.pdb
+C:\repos\NSales\Lofn.ACL\obj\Debug\net8.0\Lofn.ACL.csproj.AssemblyReference.cache
+C:\repos\NSales\Lofn.ACL\obj\Debug\net8.0\Lofn.ACL.GeneratedMSBuildEditorConfig.editorconfig
+C:\repos\NSales\Lofn.ACL\obj\Debug\net8.0\Lofn.ACL.AssemblyInfoInputs.cache
+C:\repos\NSales\Lofn.ACL\obj\Debug\net8.0\Lofn.ACL.AssemblyInfo.cs
+C:\repos\NSales\Lofn.ACL\obj\Debug\net8.0\Lofn.ACL.csproj.CoreCompileInputs.cache
+C:\repos\NSales\Lofn.ACL\obj\Debug\net8.0\Lofn.ACL.sourcelink.json
+C:\repos\NSales\Lofn.ACL\obj\Debug\net8.0\Lofn.ACL.csproj.Up2Date
+C:\repos\NSales\Lofn.ACL\obj\Debug\net8.0\Lofn.ACL.dll
+C:\repos\NSales\Lofn.ACL\obj\Debug\net8.0\refint\Lofn.ACL.dll
+C:\repos\NSales\Lofn.ACL\obj\Debug\net8.0\Lofn.ACL.pdb
+C:\repos\NSales\Lofn.ACL\obj\Debug\net8.0\ref\Lofn.ACL.dll

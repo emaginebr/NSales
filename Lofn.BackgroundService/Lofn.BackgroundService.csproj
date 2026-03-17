@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.4" />
+    <PackageReference Include="ncrontab" Version="3.3.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="ncrontab" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Lofn.Application\Lofn.Application.csproj" />
+    <ProjectReference Include="..\Lofn.Domain\Lofn.Domain.csproj" />
+    <ProjectReference Include="..\Lofn.DTO\Lofn.DTO.csproj" />
+  </ItemGroup>
+</Project>
