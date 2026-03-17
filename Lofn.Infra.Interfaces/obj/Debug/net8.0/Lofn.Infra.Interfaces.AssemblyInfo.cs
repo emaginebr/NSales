@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Lofn.Infra.Interfaces")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b745f6f2762bc1b1c7151a1fcf54572fe3240fdc")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2b3cf7078b9dea0a93b897798725e3221d279aaf")]
 [assembly: System.Reflection.AssemblyProductAttribute("Lofn.Infra.Interfaces")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Lofn.Infra.Interfaces")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

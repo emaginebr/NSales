@@ -9,7 +9,7 @@
       "Lofn.Domain/1.0.0": {
         "dependencies": {
           "AWSSDK.S3": "4.0.6.12",
-          "Lofn.DTO": "1.0.0",
+          "Lofn": "1.0.0",
           "Lofn.Infra.Interfaces": "1.0.0",
           "Microsoft.AspNetCore.Authentication": "2.3.0",
           "Microsoft.Extensions.Logging": "9.0.8",
@@ -1427,13 +1427,14 @@
           }
         }
       },
-      "Lofn.DTO/1.0.0": {
+      "Lofn/1.0.0": {
         "dependencies": {
+          "Microsoft.AspNetCore.Authentication": "2.3.0",
           "NAuth": "0.5.2",
           "Newtonsoft.Json": "13.0.3"
         },
         "runtime": {
-          "Lofn.DTO.dll": {
+          "Lofn.dll": {
             "assemblyVersion": "1.0.0.0",
             "fileVersion": "1.0.0.0"
           }
@@ -2334,7 +2335,7 @@
       "path": "ztools/0.3.6",
       "hashPath": "ztools.0.3.6.nupkg.sha512"
     },
-    "Lofn.DTO/1.0.0": {
+    "Lofn/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

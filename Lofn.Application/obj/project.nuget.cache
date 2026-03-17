@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "bADLvdODH5Y=",
+  "dgSpecHash": "z3+Bl+Gd2dQ=",
   "success": true,
-  "projectFilePath": "C:\\repos\\NSales\\Lofn.Application\\Lofn.Application.csproj",
+  "projectFilePath": "C:\\repos\\Lofn\\Lofn.Application\\Lofn.Application.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\rodri\\.nuget\\packages\\awssdk.core\\4.0.0.26\\awssdk.core.4.0.0.26.nupkg.sha512",
     "C:\\Users\\rodri\\.nuget\\packages\\awssdk.s3\\4.0.6.12\\awssdk.s3.4.0.6.12.nupkg.sha512",

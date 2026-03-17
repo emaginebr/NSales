@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "kqwqg/EptmU=",
+  "dgSpecHash": "/3m5kxKrB+k=",
   "success": true,
-  "projectFilePath": "C:\\repos\\NSales\\Lofn.Infra.Interfaces\\Lofn.Infra.Interfaces.csproj",
+  "projectFilePath": "C:\\repos\\Lofn\\Lofn.Infra.Interfaces\\Lofn.Infra.Interfaces.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\rodri\\.nuget\\packages\\microsoft.win32.systemevents\\9.0.8\\microsoft.win32.systemevents.9.0.8.nupkg.sha512",
     "C:\\Users\\rodri\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512",

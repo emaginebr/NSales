@@ -1,0 +1,13 @@
+C:\repos\Lofn\Lofn\bin\Debug\net8.0\Lofn.deps.json
+C:\repos\Lofn\Lofn\bin\Debug\net8.0\Lofn.dll
+C:\repos\Lofn\Lofn\bin\Debug\net8.0\Lofn.pdb
+C:\repos\Lofn\Lofn\obj\Debug\net8.0\Lofn.csproj.AssemblyReference.cache
+C:\repos\Lofn\Lofn\obj\Debug\net8.0\Lofn.GeneratedMSBuildEditorConfig.editorconfig
+C:\repos\Lofn\Lofn\obj\Debug\net8.0\Lofn.AssemblyInfoInputs.cache
+C:\repos\Lofn\Lofn\obj\Debug\net8.0\Lofn.AssemblyInfo.cs
+C:\repos\Lofn\Lofn\obj\Debug\net8.0\Lofn.csproj.CoreCompileInputs.cache
+C:\repos\Lofn\Lofn\obj\Debug\net8.0\Lofn.sourcelink.json
+C:\repos\Lofn\Lofn\obj\Debug\net8.0\Lofn.dll
+C:\repos\Lofn\Lofn\obj\Debug\net8.0\refint\Lofn.dll
+C:\repos\Lofn\Lofn\obj\Debug\net8.0\Lofn.pdb
+C:\repos\Lofn\Lofn\obj\Debug\net8.0\ref\Lofn.dll

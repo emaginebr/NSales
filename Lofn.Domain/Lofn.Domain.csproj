@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Lofn.DTO\Lofn.DTO.csproj" />
+    <ProjectReference Include="..\Lofn\Lofn.csproj" />
     <ProjectReference Include="..\Lofn.Infra.Interfaces\Lofn.Infra.Interfaces.csproj" />
   </ItemGroup>
 

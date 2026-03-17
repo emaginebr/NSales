@@ -27,7 +27,7 @@
     <ProjectReference Include="..\Lofn.Infra.Interfaces\Lofn.Infra.Interfaces.csproj" />
     <ProjectReference Include="..\Lofn.Application\Lofn.Application.csproj" />
     <ProjectReference Include="..\Lofn.Domain\Lofn.Domain.csproj" />
-    <ProjectReference Include="..\Lofn.DTO\Lofn.DTO.csproj" />
+    <ProjectReference Include="..\Lofn\Lofn.csproj" />
   </ItemGroup>
 
   <ItemGroup>
