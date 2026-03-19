@@ -1,9 +1,10 @@
 using HotChocolate.Execution.Configuration;
-using Lofn.API.GraphQL.Admin;
-using Lofn.API.GraphQL.Public;
+using Lofn.GraphQL.Admin;
+using Lofn.GraphQL.Public;
+using Lofn.GraphQL.Types;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Lofn.API.GraphQL;
+namespace Lofn.GraphQL;
 
 public static class GraphQLServiceExtensions
 {
@@ -12,8 +13,13 @@ public static class GraphQLServiceExtensions
         services
             .AddGraphQLServer()
             .AddAuthorization()
+            .AddDiagnosticEventListener<GraphQLErrorLogger>()
             .AddQueryType<PublicQuery>()
             .AddType<PublicStoreType>()
+            .AddTypeExtension<StoreTypeExtension>()
+            .AddTypeExtension<ProductTypeExtension>()
+            .AddTypeExtension<ProductImageTypeExtension>()
+            .AddTypeExtension<CategoryTypeExtension>()
             .AddProjections()
             .AddFiltering()
             .AddSorting();
@@ -21,7 +27,12 @@ public static class GraphQLServiceExtensions
         services
             .AddGraphQLServer("admin")
             .AddAuthorization()
+            .AddDiagnosticEventListener<GraphQLErrorLogger>()
             .AddQueryType<AdminQuery>()
+            .AddTypeExtension<StoreTypeExtension>()
+            .AddTypeExtension<ProductTypeExtension>()
+            .AddTypeExtension<ProductImageTypeExtension>()
+            .AddTypeExtension<CategoryTypeExtension>()
             .AddProjections()
             .AddFiltering()
             .AddSorting();

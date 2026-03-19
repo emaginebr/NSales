@@ -20,6 +20,7 @@ RUN make install
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY ["Lofn.API/Lofn.API.csproj", "Lofn.API/"]
+COPY ["Lofn.GraphQL/Lofn.GraphQL.csproj", "Lofn.GraphQL/"]
 COPY ["Lofn.Application/Lofn.Application.csproj", "Lofn.Application/"]
 COPY ["Lofn.Domain/Lofn.Domain.csproj", "Lofn.Domain/"]
 COPY ["Lofn/Lofn.csproj", "Lofn/"]

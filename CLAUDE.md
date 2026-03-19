@@ -33,6 +33,7 @@ docker-compose up        # Starts nginx-proxy (8081) + API services
 
 ```
 Lofn.API              → Controllers, Startup/DI config, auth middleware
+Lofn.GraphQL          → HotChocolate GraphQL schemas, queries, type extensions
 Lofn.Application      → DI bootstrap (Startup.cs), wires up services via ConfigureLofn()
 Lofn.Domain           → Business logic: Models/, Services/, Core/, Interfaces/
 Lofn.DTO              → Data transfer objects shared across layers
@@ -43,13 +44,40 @@ Lofn.Infra            → EF Core 9 DbContext (LofnContext), repositories, Unit 
 Lib/                    → External DLLs: NAuth.ACL, NAuth.DTO, NTools.ACL, NTools.DTO
 ```
 
-**Dependency flow:** API → Application → Domain → Lofn.Infra → PostgreSQL (Npgsql)
+**Dependency flow:** API → GraphQL / Application → Domain → Lofn.Infra → PostgreSQL (Npgsql)
 
 **Key patterns:**
 - Repository + Unit of Work (Lofn.Infra)
 - EF Core with lazy loading proxies
 - Custom `RemoteAuthHandler` for Bearer token auth (delegates to NAuth)
 - DI registration centralized in `Lofn.Application/Startup.cs` via `ConfigureLofn()` extension method
+
+### GraphQL - HotChocolate (Lofn.GraphQL)
+
+```
+GraphQLServiceExtensions.cs → DI registration (AddLofnGraphQL), configures both schemas
+GraphQLErrorLogger.cs       → Diagnostic event listener for logging GraphQL errors
+Public/PublicQuery.cs       → Public queries (stores, products, categories, featuredProducts)
+Public/PublicStoreType.cs   → ObjectType<Store> hiding internal fields (OwnerId, StoreUsers, Orders)
+Admin/AdminQuery.cs         → Authenticated queries (myStores, myProducts, myCategories, myOrders)
+Types/                      → ObjectType extensions adding computed fields via field resolvers
+```
+
+**Endpoints:**
+- `POST /graphql` — public schema (anonymous)
+- `POST /graphql/admin` — admin schema (requires Bearer token)
+- Both endpoints expose interactive Banana Cake Pop playground
+
+**Type extensions (computed fields):**
+- `StoreTypeExtension` → `logoUrl` (resolves via IFileClient)
+- `ProductTypeExtension` → `imageUrl` (resolves via IFileClient)
+- `ProductImageTypeExtension` → `imageUrl` (resolves via IFileClient)
+- `CategoryTypeExtension` → `productCount` (counts active products via navigation property)
+
+**Key patterns:**
+- Queries return `IQueryable<Entity>` directly from EF Core DbContext (no DTOs)
+- `[UseProjection]`, `[UseFiltering]`, `[UseSorting]` for HotChocolate optimizations
+- `[ExtendObjectType]` for adding computed fields without modifying entities
 
 ### Frontend - Layered React (src/)
 
@@ -67,6 +95,48 @@ lib/nauth-core/ → Auth library
 **Data flow:** Page → Context/Provider → Business → Service → HttpClient (Axios) → Backend API
 
 **Key libraries:** MUI + Bootstrap (UI), React Router 6, Axios, Stripe, Web3, i18next, React DnD, Craft.js
+
+### API Endpoints (Backend)
+
+**GraphQL (read operations):**
+- `POST /graphql` — public schema (anonymous): stores, products, categories, storeBySlug, featuredProducts
+- `POST /graphql/admin` — admin schema (authenticated): myStores, myProducts, myCategories, myOrders
+
+**REST — Store** (`/store`):
+- `POST /store/insert` — [Authorize] create store
+- `POST /store/update` — [Authorize] update store
+- `POST /store/uploadLogo/{storeId}` — [Authorize] upload logo (100MB limit)
+- `DELETE /store/delete/{storeId}` — [Authorize] delete store
+
+**REST — Product** (`/product`):
+- `POST /product/{storeSlug}/insert` — [Authorize] create product
+- `POST /product/{storeSlug}/update` — [Authorize] update product
+- `POST /product/search` — public product search with pagination
+
+**REST — Category** (`/category`):
+- `POST /category/{storeSlug}/insert` — [Authorize] create category
+- `POST /category/{storeSlug}/update` — [Authorize] update category
+- `DELETE /category/{storeSlug}/delete/{categoryId}` — [Authorize] delete category
+
+**REST — Order** (`/order`):
+- `POST /order/update` — [Authorize] update order
+- `POST /order/search` — [Authorize] search orders with pagination
+- `POST /order/list` — [Authorize] list orders by store/user/status
+- `GET /order/getById/{orderId}` — [Authorize] get order by ID
+
+**REST — Image** (`/image`):
+- `POST /image/upload/{productId}` — [Authorize] upload product image (100MB limit)
+- `GET /image/list/{productId}` — [Authorize] list images for product
+- `DELETE /image/delete/{imageId}` — [Authorize] delete image
+
+**REST — StoreUser** (`/storeuser`):
+- `GET /storeuser/{storeSlug}/list` — [Authorize] list store members
+- `POST /storeuser/{storeSlug}/insert` — [Authorize] add user to store
+- `DELETE /storeuser/{storeSlug}/delete/{storeUserId}` — [Authorize] remove user from store
+
+**Other:**
+- `GET /` — health check
+- `/swagger/ui` — Swagger UI (dev/docker only)
 
 ### Routing (App.tsx)
 - Public: `/`, `/network`, `/account/login`, `/:networkSlug`, `/@/:sellerSlug`

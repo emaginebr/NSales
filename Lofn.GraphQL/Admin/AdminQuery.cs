@@ -6,7 +6,7 @@ using Lofn.Infra.Context;
 using Microsoft.AspNetCore.Http;
 using NAuth.ACL.Interfaces;
 
-namespace Lofn.API.GraphQL.Admin;
+namespace Lofn.GraphQL.Admin;
 
 [Authorize]
 public class AdminQuery

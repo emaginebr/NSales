@@ -3,7 +3,7 @@ using HotChocolate;
 using HotChocolate.Data;
 using Lofn.Infra.Context;
 
-namespace Lofn.API.GraphQL.Public;
+namespace Lofn.GraphQL.Public;
 
 public class PublicQuery
 {

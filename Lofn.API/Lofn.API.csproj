@@ -18,8 +18,6 @@
 
   <ItemGroup>
     <PackageReference Include="HotChocolate.AspNetCore" Version="14.3.0" />
-    <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="14.3.0" />
-    <PackageReference Include="HotChocolate.Data.EntityFramework" Version="14.3.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="9.0.8" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
     <PackageReference Include="NAuth" Version="0.5.2" />
@@ -27,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Lofn.GraphQL\Lofn.GraphQL.csproj" />
     <ProjectReference Include="..\Lofn.Infra.Interfaces\Lofn.Infra.Interfaces.csproj" />
     <ProjectReference Include="..\Lofn.Application\Lofn.Application.csproj" />
     <ProjectReference Include="..\Lofn.Domain\Lofn.Domain.csproj" />

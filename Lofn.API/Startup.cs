@@ -16,7 +16,7 @@ using System.Linq;
 using System.Net.Mime;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Lofn.API.GraphQL;
+using Lofn.GraphQL;
 using NAuth.DTO.Settings;
 using zTools.DTO.Settings;
 

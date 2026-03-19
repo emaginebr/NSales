@@ -1,7 +1,7 @@
 using HotChocolate.Types;
 using Lofn.Infra.Context;
 
-namespace Lofn.API.GraphQL.Public;
+namespace Lofn.GraphQL.Public;
 
 public class PublicStoreType : ObjectType<Store>
 {
