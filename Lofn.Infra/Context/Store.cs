@@ -13,6 +13,10 @@ public partial class Store
 
     public long OwnerId { get; set; }
 
+    public string Logo { get; set; }
+
+    public int Status { get; set; }
+
     public virtual ICollection<Product> Products { get; set; } = new List<Product>();
 
     public virtual ICollection<Category> Categories { get; set; } = new List<Category>();

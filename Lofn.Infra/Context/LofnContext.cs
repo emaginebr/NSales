@@ -163,6 +163,12 @@ public partial class LofnContext : DbContext
                 .HasMaxLength(120)
                 .HasColumnName("name");
             entity.Property(e => e.OwnerId).HasColumnName("owner_id");
+            entity.Property(e => e.Logo)
+                .HasMaxLength(150)
+                .HasColumnName("logo");
+            entity.Property(e => e.Status)
+                .HasDefaultValue(1)
+                .HasColumnName("status");
         });
 
         modelBuilder.Entity<StoreUser>(entity =>

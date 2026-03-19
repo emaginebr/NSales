@@ -12,7 +12,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Lofn.ACL;
 using Lofn.ACL.Handlers;
+using Lofn.ACL.Interfaces;
 using Lofn.Domain;
 using NAuth.ACL;
 using NAuth.ACL.Interfaces;
@@ -65,6 +67,12 @@ namespace Lofn.Application
             injectDependency(typeof(IFileClient), typeof(FileClient), services, scoped);
             injectDependency(typeof(IStringClient), typeof(StringClient), services, scoped);
             injectDependency(typeof(IDocumentClient), typeof(DocumentClient), services, scoped);
+            injectDependency(typeof(IProductClient), typeof(ProductClient), services, scoped);
+            injectDependency(typeof(IStoreClient), typeof(StoreClient), services, scoped);
+            injectDependency(typeof(ICategoryClient), typeof(CategoryClient), services, scoped);
+            injectDependency(typeof(IOrderClient), typeof(OrderClient), services, scoped);
+            injectDependency(typeof(IStoreUserClient), typeof(StoreUserClient), services, scoped);
+            injectDependency(typeof(IImageClient), typeof(ImageClient), services, scoped);
             #endregion
 
             #region Service

@@ -29,6 +29,36 @@ namespace Lofn.API.Controllers
             _storeService = storeService;
         }
 
+        [HttpGet("{storeSlug}/listActive")]
+        public async Task<ActionResult<IList<CategoryInfo>>> ListActive(string storeSlug)
+        {
+            try
+            {
+                return Ok(await _categoryService.ListActiveByStoreSlugAsync(storeSlug));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpGet("{storeSlug}/getBySlug/{categorySlug}")]
+        public async Task<ActionResult<CategoryInfo>> GetBySlug(string storeSlug, string categorySlug)
+        {
+            try
+            {
+                var category = await _categoryService.GetBySlugAndStoreSlugAsync(storeSlug, categorySlug);
+                if (category == null)
+                    return NotFound();
+
+                return Ok(category);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
         [Authorize]
         [HttpGet("{storeSlug}/list")]
         public async Task<ActionResult<IList<CategoryInfo>>> List(string storeSlug)

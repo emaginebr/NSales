@@ -1,4 +1,5 @@
 using Lofn.Domain.Models;
+using Lofn.DTO.Store;
 using Lofn.Infra.Context;
 
 namespace Lofn.Infra.Mappers
@@ -12,7 +13,9 @@ namespace Lofn.Infra.Mappers
                 StoreId = row.StoreId,
                 Slug = row.Slug,
                 Name = row.Name,
-                OwnerId = row.OwnerId
+                OwnerId = row.OwnerId,
+                Logo = row.Logo,
+                Status = (StoreStatusEnum)row.Status
             };
         }
 
@@ -22,6 +25,8 @@ namespace Lofn.Infra.Mappers
             row.Slug = md.Slug;
             row.Name = md.Name;
             row.OwnerId = md.OwnerId;
+            row.Logo = md.Logo;
+            row.Status = (int)md.Status;
         }
     }
 }

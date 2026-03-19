@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Lofn.DTO.Store;
 
 namespace Lofn.Domain.Services
 {
@@ -19,6 +20,8 @@ namespace Lofn.Domain.Services
         private readonly IProductRepository<ProductModel> _productRepository;
         private readonly IProductImageService _productImageService;
         private readonly IStoreUserRepository<StoreUserModel> _storeUserRepository;
+        private readonly IStoreRepository<StoreModel> _storeRepository;
+        private readonly ICategoryRepository<CategoryModel> _categoryRepository;
 
         public ProductService(
             ITenantResolver tenantResolver,
@@ -26,7 +29,9 @@ namespace Lofn.Domain.Services
             IStringClient stringClient,
             IProductRepository<ProductModel> productRepository,
             IProductImageService productImageService,
-            IStoreUserRepository<StoreUserModel> storeUserRepository
+            IStoreUserRepository<StoreUserModel> storeUserRepository,
+            IStoreRepository<StoreModel> storeRepository,
+            ICategoryRepository<CategoryModel> categoryRepository
         )
         {
             _tenantResolver = tenantResolver;
@@ -35,6 +40,8 @@ namespace Lofn.Domain.Services
             _productRepository = productRepository;
             _productImageService = productImageService;
             _storeUserRepository = storeUserRepository;
+            _storeRepository = storeRepository;
+            _categoryRepository = categoryRepository;
         }
 
         private async Task ValidateStoreUserAsync(long storeId, long userId)
@@ -172,6 +179,26 @@ namespace Lofn.Domain.Services
                 PageNum = param.PageNum,
                 PageCount = pageCount
             };
+        }
+
+        public async Task<IList<ProductInfo>> ListActiveByCategorySlugAsync(string storeSlug, string categorySlug)
+        {
+            var store = await _storeRepository.GetBySlugAsync(storeSlug);
+            if (store == null)
+                throw new Exception("Store not found");
+
+            var category = await _categoryRepository.GetBySlugAndStoreAsync(store.StoreId, categorySlug);
+            if (category == null)
+                throw new Exception("Category not found");
+
+            var items = await _productRepository.ListActiveByCategoryAndStoreAsync(category.CategoryId, store.StoreId);
+
+            var products = new List<ProductInfo>();
+            foreach (var item in items)
+            {
+                products.Add(await GetProductInfoAsync(item));
+            }
+            return products;
         }
 
         public async Task<IList<ProductModel>> ListByStoreAsync(long storeId)

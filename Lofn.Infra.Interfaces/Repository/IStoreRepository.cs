@@ -6,6 +6,7 @@ namespace Lofn.Infra.Interfaces.Repository
     public interface IStoreRepository<TModel> where TModel : class
     {
         Task<IEnumerable<TModel>> ListAllAsync();
+        Task<IEnumerable<TModel>> ListActiveAsync();
         Task<IEnumerable<TModel>> ListByOwnerAsync(long ownerId);
         Task<TModel> GetByIdAsync(long id);
         Task<TModel> GetBySlugAsync(string slug);

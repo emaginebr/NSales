@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NAuth.ACL.Interfaces;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Lofn.API.Controllers
@@ -123,6 +124,19 @@ namespace Lofn.API.Controllers
             catch (UnauthorizedAccessException)
             {
                 return Forbid();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpGet("{storeSlug}/category/{categorySlug}/listActive")]
+        public async Task<ActionResult<IList<ProductInfo>>> ListActiveByCategory(string storeSlug, string categorySlug)
+        {
+            try
+            {
+                return Ok(await _productService.ListActiveByCategorySlugAsync(storeSlug, categorySlug));
             }
             catch (Exception ex)
             {

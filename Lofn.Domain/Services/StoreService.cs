@@ -34,6 +34,12 @@ namespace Lofn.Domain.Services
             return items.Select(StoreMapper.ToInfo).ToList();
         }
 
+        public async Task<IList<StoreInfo>> ListActiveAsync()
+        {
+            var items = await _storeRepository.ListActiveAsync();
+            return items.Select(StoreMapper.ToInfo).ToList();
+        }
+
         public async Task<IList<StoreInfo>> ListByOwnerAsync(long ownerId)
         {
             var items = await _storeRepository.ListByOwnerAsync(ownerId);
@@ -99,6 +105,19 @@ namespace Lofn.Domain.Services
             var model = StoreMapper.ToUpdateModel(store, ownerId);
             model.Slug = await GenerateSlugAsync(store.StoreId, store.Name);
             return await _storeRepository.UpdateAsync(model);
+        }
+
+        public async Task<StoreModel> UploadLogoAsync(long storeId, string fileName, long ownerId)
+        {
+            var existing = await _storeRepository.GetByIdAsync(storeId);
+            if (existing == null)
+                throw new Exception("Store not found");
+
+            if (existing.OwnerId != ownerId)
+                throw new UnauthorizedAccessException("Access denied: user is not the owner of this store");
+
+            existing.Logo = fileName;
+            return await _storeRepository.UpdateAsync(existing);
         }
 
         public async Task DeleteAsync(long storeId)

@@ -4,9 +4,7 @@ using Lofn.ACL.Core;
 using Lofn.ACL.Interfaces;
 using Lofn.DTO.Product;
 using Lofn.DTO.Settings;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -26,9 +24,9 @@ namespace Lofn.ACL
             return JsonConvert.DeserializeObject<ProductListPagedInfo>(await response.Content.ReadAsStringAsync());
         }
 
-        public async Task<ProductInfo> GetByIdAsync(long productId)
+        public async Task<ProductInfo> GetByIdAsync(string storeSlug, long productId)
         {
-            var response = await _httpClient.GetAsync($"{_nsalesSetting.Value.ApiUrl}/Product/getById/{productId}");
+            var response = await _httpClient.GetAsync($"{_nsalesSetting.Value.ApiUrl}/Product/{storeSlug}/getById/{productId}");
             response.EnsureSuccessStatusCode();
             return JsonConvert.DeserializeObject<ProductInfo>(await response.Content.ReadAsStringAsync());
         }
@@ -40,18 +38,25 @@ namespace Lofn.ACL
             return JsonConvert.DeserializeObject<ProductInfo>(await response.Content.ReadAsStringAsync());
         }
 
-        public async Task<ProductInfo> InsertAsync(ProductInfo product)
+        public async Task<IList<ProductInfo>> ListActiveByCategoryAsync(string storeSlug, string categorySlug)
+        {
+            var response = await _httpClient.GetAsync($"{_nsalesSetting.Value.ApiUrl}/Product/{storeSlug}/category/{categorySlug}/listActive");
+            response.EnsureSuccessStatusCode();
+            return JsonConvert.DeserializeObject<IList<ProductInfo>>(await response.Content.ReadAsStringAsync());
+        }
+
+        public async Task<ProductInfo> InsertAsync(string storeSlug, ProductInsertInfo product)
         {
             var content = new StringContent(JsonConvert.SerializeObject(product), Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync($"{_nsalesSetting.Value.ApiUrl}/Product/insert", content);
+            var response = await _httpClient.PostAsync($"{_nsalesSetting.Value.ApiUrl}/Product/{storeSlug}/insert", content);
             response.EnsureSuccessStatusCode();
             return JsonConvert.DeserializeObject<ProductInfo>(await response.Content.ReadAsStringAsync());
         }
 
-        public async Task<ProductInfo> UpdateAsync(ProductInfo product)
+        public async Task<ProductInfo> UpdateAsync(string storeSlug, ProductUpdateInfo product)
         {
             var content = new StringContent(JsonConvert.SerializeObject(product), Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync($"{_nsalesSetting.Value.ApiUrl}/Product/update", content);
+            var response = await _httpClient.PostAsync($"{_nsalesSetting.Value.ApiUrl}/Product/{storeSlug}/update", content);
             response.EnsureSuccessStatusCode();
             return JsonConvert.DeserializeObject<ProductInfo>(await response.Content.ReadAsStringAsync());
         }

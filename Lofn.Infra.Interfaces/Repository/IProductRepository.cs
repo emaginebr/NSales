@@ -12,5 +12,6 @@ namespace Lofn.Infra.Interfaces.Repository
         Task<TModel> InsertAsync(TModel model);
         Task<TModel> UpdateAsync(TModel model);
         Task<bool> ExistSlugAsync(long storeId, long productId, string slug);
+        Task<IEnumerable<TModel>> ListActiveByCategoryAndStoreAsync(long categoryId, long storeId);
     }
 }

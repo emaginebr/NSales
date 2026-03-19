@@ -96,5 +96,23 @@ namespace Lofn.Infra.Repository
                 .GroupBy(x => x.CategoryId.Value)
                 .ToDictionaryAsync(g => g.Key, g => g.Count());
         }
+
+        public async Task<IDictionary<long, int>> CountActiveProductsByStoreAsync(long storeId)
+        {
+            return await _context.Products
+                .Where(x => x.CategoryId.HasValue && x.StoreId == storeId && x.Status == 1)
+                .GroupBy(x => x.CategoryId.Value)
+                .ToDictionaryAsync(g => g.Key, g => g.Count());
+        }
+
+        public async Task<CategoryModel> GetBySlugAndStoreAsync(long storeId, string slug)
+        {
+            var row = await _context.Categories
+                .Where(x => x.StoreId == storeId && x.Slug == slug)
+                .FirstOrDefaultAsync();
+            if (row == null)
+                return null;
+            return CategoryDbMapper.ToModel(row);
+        }
     }
 }

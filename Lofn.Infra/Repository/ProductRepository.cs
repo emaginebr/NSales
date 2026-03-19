@@ -102,5 +102,15 @@ namespace Lofn.Infra.Repository
                 .Where(x => x.StoreId == storeId && x.Slug == slug && (productId == 0 || x.ProductId != productId))
                 .AnyAsync();
         }
+
+        public async Task<IEnumerable<ProductModel>> ListActiveByCategoryAndStoreAsync(long categoryId, long storeId)
+        {
+            var rows = await _context.Products
+                .Where(x => x.StoreId == storeId && x.CategoryId == categoryId && x.Status == STATUS_ACTIVE)
+                .OrderBy(x => x.Frequency)
+                .ThenBy(x => x.Price)
+                .ToListAsync();
+            return rows.Select(ProductDbMapper.ToModel);
+        }
     }
 }

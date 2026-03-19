@@ -24,6 +24,15 @@ namespace Lofn.Infra.Repository
             return rows.Select(StoreDbMapper.ToModel);
         }
 
+        public async Task<IEnumerable<StoreModel>> ListActiveAsync()
+        {
+            var rows = await _context.Stores
+                .Where(x => x.Status == 1)
+                .OrderBy(x => x.Name)
+                .ToListAsync();
+            return rows.Select(StoreDbMapper.ToModel);
+        }
+
         public async Task<IEnumerable<StoreModel>> ListByOwnerAsync(long ownerId)
         {
             var rows = await _context.Stores

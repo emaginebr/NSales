@@ -40,6 +40,38 @@ namespace Lofn.Domain.Services
             return items.Select(CategoryMapper.ToInfo).ToList();
         }
 
+        public async Task<IList<CategoryInfo>> ListActiveByStoreSlugAsync(string storeSlug)
+        {
+            var store = await _storeRepository.GetBySlugAsync(storeSlug);
+            if (store == null)
+                throw new Exception("Store not found");
+
+            var items = await _categoryRepository.ListByStoreAsync(store.StoreId);
+            var counts = await _categoryRepository.CountActiveProductsByStoreAsync(store.StoreId);
+
+            return items
+                .Where(x => counts.ContainsKey(x.CategoryId) && counts[x.CategoryId] > 0)
+                .Select(x =>
+                {
+                    var info = CategoryMapper.ToInfo(x);
+                    info.ProductCount = counts[x.CategoryId];
+                    return info;
+                }).ToList();
+        }
+
+        public async Task<CategoryInfo> GetBySlugAndStoreSlugAsync(string storeSlug, string categorySlug)
+        {
+            var store = await _storeRepository.GetBySlugAsync(storeSlug);
+            if (store == null)
+                throw new Exception("Store not found");
+
+            var model = await _categoryRepository.GetBySlugAndStoreAsync(store.StoreId, categorySlug);
+            if (model == null)
+                return null;
+
+            return CategoryMapper.ToInfo(model);
+        }
+
         public async Task<IList<CategoryInfo>> ListWithProductCountAsync()
         {
             var items = await _categoryRepository.ListAllAsync();

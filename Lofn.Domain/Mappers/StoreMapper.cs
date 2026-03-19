@@ -12,7 +12,9 @@ namespace Lofn.Domain.Mappers
                 StoreId = md.StoreId,
                 Slug = md.Slug,
                 Name = md.Name,
-                OwnerId = md.OwnerId
+                OwnerId = md.OwnerId,
+                Logo = md.Logo,
+                Status = md.Status
             };
         }
 
@@ -21,7 +23,8 @@ namespace Lofn.Domain.Mappers
             return new StoreModel
             {
                 Name = dto.Name,
-                OwnerId = ownerId
+                OwnerId = ownerId,
+                Status = StoreStatusEnum.Active
             };
         }
 
@@ -31,7 +34,8 @@ namespace Lofn.Domain.Mappers
             {
                 StoreId = dto.StoreId,
                 Name = dto.Name,
-                OwnerId = ownerId
+                OwnerId = ownerId,
+                Status = dto.Status
             };
         }
     }

@@ -12,5 +12,11 @@ namespace Lofn.DTO.Store
         public string Name { get; set; }
         [JsonPropertyName("ownerId")]
         public long OwnerId { get; set; }
+        [JsonPropertyName("logo")]
+        public string Logo { get; set; }
+        [JsonPropertyName("logoUrl")]
+        public string LogoUrl { get; set; }
+        [JsonPropertyName("status")]
+        public StoreStatusEnum Status { get; set; }
     }
 }

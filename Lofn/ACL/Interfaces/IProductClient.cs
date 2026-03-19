@@ -1,8 +1,5 @@
-﻿using Lofn.DTO.Product;
-using System;
+using Lofn.DTO.Product;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Lofn.ACL.Interfaces
@@ -10,9 +7,10 @@ namespace Lofn.ACL.Interfaces
     public interface IProductClient
     {
         Task<ProductListPagedInfo> SearchAsync(ProductSearchParam param);
-        Task<ProductInfo> GetByIdAsync(long productId);
+        Task<ProductInfo> GetByIdAsync(string storeSlug, long productId);
         Task<ProductInfo> GetBySlugAsync(string productSlug);
-        Task<ProductInfo> InsertAsync(ProductInfo product);
-        Task<ProductInfo> UpdateAsync(ProductInfo product);
+        Task<IList<ProductInfo>> ListActiveByCategoryAsync(string storeSlug, string categorySlug);
+        Task<ProductInfo> InsertAsync(string storeSlug, ProductInsertInfo product);
+        Task<ProductInfo> UpdateAsync(string storeSlug, ProductUpdateInfo product);
     }
 }

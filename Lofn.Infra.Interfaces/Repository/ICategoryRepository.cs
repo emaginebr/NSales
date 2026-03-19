@@ -14,5 +14,7 @@ namespace Lofn.Infra.Interfaces.Repository
         Task DeleteAsync(long id);
         Task<bool> ExistSlugAsync(long storeId, long categoryId, string slug);
         Task<IDictionary<long, int>> CountProductsByCategoryAsync();
+        Task<IDictionary<long, int>> CountActiveProductsByStoreAsync(long storeId);
+        Task<TModel> GetBySlugAndStoreAsync(long storeId, string slug);
     }
 }

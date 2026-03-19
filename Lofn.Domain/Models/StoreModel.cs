@@ -1,3 +1,5 @@
+using Lofn.DTO.Store;
+
 namespace Lofn.Domain.Models
 {
     public class StoreModel
@@ -6,5 +8,7 @@ namespace Lofn.Domain.Models
         public string Slug { get; set; }
         public string Name { get; set; }
         public long OwnerId { get; set; }
+        public string Logo { get; set; }
+        public StoreStatusEnum Status { get; set; }
     }
 }

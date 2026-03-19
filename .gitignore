@@ -153,6 +153,3 @@ nginx/certs/
 *.pem
 *.key
 *.pfx
-
-## Seed script generated images
-scripts/photos/

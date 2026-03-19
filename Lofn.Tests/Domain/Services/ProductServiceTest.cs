@@ -20,6 +20,8 @@ namespace Lofn.Tests.Domain.Services
         private readonly Mock<IProductRepository<ProductModel>> _productRepositoryMock;
         private readonly Mock<IProductImageService> _productImageServiceMock;
         private readonly Mock<IStoreUserRepository<StoreUserModel>> _storeUserRepositoryMock;
+        private readonly Mock<IStoreRepository<StoreModel>> _storeRepositoryMock;
+        private readonly Mock<ICategoryRepository<CategoryModel>> _categoryRepositoryMock;
         private readonly ProductService _sut;
 
         public ProductServiceTest()
@@ -30,13 +32,17 @@ namespace Lofn.Tests.Domain.Services
             _productRepositoryMock = new Mock<IProductRepository<ProductModel>>();
             _productImageServiceMock = new Mock<IProductImageService>();
             _storeUserRepositoryMock = new Mock<IStoreUserRepository<StoreUserModel>>();
+            _storeRepositoryMock = new Mock<IStoreRepository<StoreModel>>();
+            _categoryRepositoryMock = new Mock<ICategoryRepository<CategoryModel>>();
             _sut = new ProductService(
                 _tenantResolverMock.Object,
                 _fileClientMock.Object,
                 _stringClientMock.Object,
                 _productRepositoryMock.Object,
                 _productImageServiceMock.Object,
-                _storeUserRepositoryMock.Object
+                _storeUserRepositoryMock.Object,
+                _storeRepositoryMock.Object,
+                _categoryRepositoryMock.Object
             );
         }
 

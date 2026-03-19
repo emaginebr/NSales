@@ -13,6 +13,7 @@ namespace Lofn.Domain.Interfaces
         Task<ProductModel> GetByIdAsync(long productId, long storeId, long userId);
         Task<ProductModel> GetBySlugAsync(string productSlug);
         Task<ProductInfo> GetProductInfoAsync(ProductModel product);
+        Task<IList<ProductInfo>> ListActiveByCategorySlugAsync(string storeSlug, string categorySlug);
         Task<ProductModel> InsertAsync(ProductInsertInfo product, long storeId, long userId);
         Task<ProductModel> UpdateAsync(ProductUpdateInfo product, long storeId, long userId);
     }
