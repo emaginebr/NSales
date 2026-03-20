@@ -2,36 +2,36 @@
 -- PostgreSQL
 -- Generated from EF Core Code First model
 
-CREATE TABLE stores (
+CREATE TABLE lofn_stores (
     store_id BIGSERIAL NOT NULL,
     slug VARCHAR(120) NOT NULL,
     name VARCHAR(120) NOT NULL,
     owner_id BIGINT NOT NULL,
     logo VARCHAR(150),
     status INTEGER NOT NULL DEFAULT 1,
-    CONSTRAINT stores_pkey PRIMARY KEY (store_id)
+    CONSTRAINT lofn_stores_pkey PRIMARY KEY (store_id)
 );
 
-CREATE UNIQUE INDEX ix_stores_slug ON stores (slug);
+CREATE UNIQUE INDEX ix_lofn_stores_slug ON lofn_stores (slug);
 
-CREATE TABLE store_users (
+CREATE TABLE lofn_store_users (
     store_user_id BIGSERIAL NOT NULL,
     store_id BIGINT NOT NULL,
     user_id BIGINT NOT NULL,
-    CONSTRAINT store_users_pkey PRIMARY KEY (store_user_id),
-    CONSTRAINT fk_store_user_store FOREIGN KEY (store_id) REFERENCES stores (store_id) ON DELETE CASCADE
+    CONSTRAINT lofn_store_users_pkey PRIMARY KEY (store_user_id),
+    CONSTRAINT fk_lofn_store_user_store FOREIGN KEY (store_id) REFERENCES lofn_stores (store_id) ON DELETE CASCADE
 );
 
-CREATE TABLE categories (
+CREATE TABLE lofn_categories (
     category_id BIGSERIAL NOT NULL,
     slug VARCHAR(120) NOT NULL,
     name VARCHAR(120) NOT NULL,
     store_id BIGINT,
-    CONSTRAINT categories_pkey PRIMARY KEY (category_id),
-    CONSTRAINT fk_category_store FOREIGN KEY (store_id) REFERENCES stores (store_id)
+    CONSTRAINT lofn_categories_pkey PRIMARY KEY (category_id),
+    CONSTRAINT fk_lofn_category_store FOREIGN KEY (store_id) REFERENCES lofn_stores (store_id)
 );
 
-CREATE TABLE products (
+CREATE TABLE lofn_products (
     product_id BIGSERIAL NOT NULL,
     user_id BIGINT NOT NULL,
     slug VARCHAR(120) NOT NULL,
@@ -49,17 +49,16 @@ CREATE TABLE products (
     featured BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    CONSTRAINT products_pkey PRIMARY KEY (product_id),
-    CONSTRAINT fk_product_store FOREIGN KEY (store_id) REFERENCES stores (store_id),
-    CONSTRAINT fk_product_category FOREIGN KEY (category_id) REFERENCES categories (category_id)
+    CONSTRAINT lofn_products_pkey PRIMARY KEY (product_id),
+    CONSTRAINT fk_lofn_product_store FOREIGN KEY (store_id) REFERENCES lofn_stores (store_id),
+    CONSTRAINT fk_lofn_product_category FOREIGN KEY (category_id) REFERENCES lofn_categories (category_id)
 );
 
-CREATE TABLE product_images (
+CREATE TABLE lofn_product_images (
     image_id BIGSERIAL NOT NULL,
     product_id BIGINT NOT NULL,
     image VARCHAR(150),
     sort_order INTEGER NOT NULL DEFAULT 0,
-    CONSTRAINT product_images_pkey PRIMARY KEY (image_id),
-    CONSTRAINT fk_product_image_product FOREIGN KEY (product_id) REFERENCES products (product_id) ON DELETE CASCADE
+    CONSTRAINT lofn_product_images_pkey PRIMARY KEY (image_id),
+    CONSTRAINT fk_lofn_product_image_product FOREIGN KEY (product_id) REFERENCES lofn_products (product_id) ON DELETE CASCADE
 );
-

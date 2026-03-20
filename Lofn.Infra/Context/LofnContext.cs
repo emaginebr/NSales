@@ -29,9 +29,9 @@ public partial class LofnContext : DbContext
     {
         modelBuilder.Entity<Product>(entity =>
         {
-            entity.HasKey(e => e.ProductId).HasName("products_pkey");
+            entity.HasKey(e => e.ProductId).HasName("lofn_products_pkey");
 
-            entity.ToTable("products");
+            entity.ToTable("lofn_products");
 
             entity.Property(e => e.ProductId).HasColumnName("product_id");
             entity.Property(e => e.Description).HasColumnName("description");
@@ -53,7 +53,7 @@ public partial class LofnContext : DbContext
             entity.HasOne(d => d.Store).WithMany(p => p.Products)
                 .HasForeignKey(d => d.StoreId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_product_store");
+                .HasConstraintName("fk_lofn_product_store");
             entity.Property(e => e.Slug)
                 .IsRequired()
                 .HasMaxLength(120)
@@ -77,14 +77,14 @@ public partial class LofnContext : DbContext
             entity.HasOne(d => d.Category).WithMany(p => p.Products)
                 .HasForeignKey(d => d.CategoryId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_product_category");
+                .HasConstraintName("fk_lofn_product_category");
         });
 
         modelBuilder.Entity<Category>(entity =>
         {
-            entity.HasKey(e => e.CategoryId).HasName("categories_pkey");
+            entity.HasKey(e => e.CategoryId).HasName("lofn_categories_pkey");
 
-            entity.ToTable("categories");
+            entity.ToTable("lofn_categories");
 
             entity.Property(e => e.CategoryId).HasColumnName("category_id");
             entity.Property(e => e.Slug)
@@ -100,14 +100,14 @@ public partial class LofnContext : DbContext
             entity.HasOne(d => d.Store).WithMany(p => p.Categories)
                 .HasForeignKey(d => d.StoreId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_category_store");
+                .HasConstraintName("fk_lofn_category_store");
         });
 
         modelBuilder.Entity<Store>(entity =>
         {
-            entity.HasKey(e => e.StoreId).HasName("stores_pkey");
+            entity.HasKey(e => e.StoreId).HasName("lofn_stores_pkey");
 
-            entity.ToTable("stores");
+            entity.ToTable("lofn_stores");
 
             entity.Property(e => e.StoreId).HasColumnName("store_id");
             entity.Property(e => e.Slug)
@@ -116,7 +116,7 @@ public partial class LofnContext : DbContext
                 .HasColumnName("slug");
             entity.HasIndex(e => e.Slug)
                 .IsUnique()
-                .HasDatabaseName("ix_stores_slug");
+                .HasDatabaseName("ix_lofn_stores_slug");
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(120)
@@ -132,9 +132,9 @@ public partial class LofnContext : DbContext
 
         modelBuilder.Entity<StoreUser>(entity =>
         {
-            entity.HasKey(e => e.StoreUserId).HasName("store_users_pkey");
+            entity.HasKey(e => e.StoreUserId).HasName("lofn_store_users_pkey");
 
-            entity.ToTable("store_users");
+            entity.ToTable("lofn_store_users");
 
             entity.Property(e => e.StoreUserId).HasColumnName("store_user_id");
             entity.Property(e => e.StoreId).HasColumnName("store_id");
@@ -143,14 +143,14 @@ public partial class LofnContext : DbContext
             entity.HasOne(d => d.Store).WithMany(p => p.StoreUsers)
                 .HasForeignKey(d => d.StoreId)
                 .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("fk_store_user_store");
+                .HasConstraintName("fk_lofn_store_user_store");
         });
 
         modelBuilder.Entity<ProductImage>(entity =>
         {
-            entity.HasKey(e => e.ImageId).HasName("product_images_pkey");
+            entity.HasKey(e => e.ImageId).HasName("lofn_product_images_pkey");
 
-            entity.ToTable("product_images");
+            entity.ToTable("lofn_product_images");
 
             entity.Property(e => e.ImageId).HasColumnName("image_id");
             entity.Property(e => e.ProductId).HasColumnName("product_id");
@@ -164,7 +164,7 @@ public partial class LofnContext : DbContext
             entity.HasOne(d => d.Product).WithMany(p => p.ProductImages)
                 .HasForeignKey(d => d.ProductId)
                 .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("fk_product_image_product");
+                .HasConstraintName("fk_lofn_product_image_product");
         });
 
         OnModelCreatingPartial(modelBuilder);
