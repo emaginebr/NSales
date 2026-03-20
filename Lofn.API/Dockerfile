@@ -3,7 +3,7 @@
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 ENV ASPNETCORE_ENVIRONMENT=Docker
 WORKDIR /app
-EXPOSE 8080
+EXPOSE 80
 
 # Build libgdiplus with pango
 RUN apt-get update && apt-get install  -y --allow-unauthenticated \

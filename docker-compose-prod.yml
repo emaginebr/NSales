@@ -5,11 +5,11 @@ services:
       dockerfile: Lofn.API/Dockerfile
     container_name: lofn-api
     restart: unless-stopped
-    ports:
-      - "80:8080"
+    expose:
+      - "80"
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-      ASPNETCORE_URLS: http://+:8080
+      ASPNETCORE_URLS: http://+:80
       Tenants__emagine__ConnectionString: ${EMAGINE_CONNECTION_STRING}
       Tenants__emagine__JwtSecret: ${EMAGINE_JWT_SECRET}
       Tenants__monexup__ConnectionString: ${MONEXUP_CONNECTION_STRING}
