@@ -1,4 +1,5 @@
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Types.Pagination;
 using Lofn.GraphQL.Admin;
 using Lofn.GraphQL.Public;
 using Lofn.GraphQL.Types;
@@ -20,6 +21,12 @@ public static class GraphQLServiceExtensions
             .AddTypeExtension<ProductTypeExtension>()
             .AddTypeExtension<ProductImageTypeExtension>()
             .AddTypeExtension<CategoryTypeExtension>()
+            .SetPagingOptions(new PagingOptions
+            {
+                MaxPageSize = 50,
+                DefaultPageSize = 10,
+                IncludeTotalCount = true
+            })
             .AddProjections()
             .AddFiltering()
             .AddSorting();
@@ -33,6 +40,12 @@ public static class GraphQLServiceExtensions
             .AddTypeExtension<ProductTypeExtension>()
             .AddTypeExtension<ProductImageTypeExtension>()
             .AddTypeExtension<CategoryTypeExtension>()
+            .SetPagingOptions(new PagingOptions
+            {
+                MaxPageSize = 50,
+                DefaultPageSize = 10,
+                IncludeTotalCount = true
+            })
             .AddProjections()
             .AddFiltering()
             .AddSorting();

@@ -13,7 +13,7 @@ NAUTH_URL = os.getenv("NAUTH_URL")
 LOFN_URL = os.getenv("LOFN_URL")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-TENANT_ID = "monexup"
+TENANT_ID = "emagine"
 DEVICE_FINGERPRINT = "seed-script"
 USER_AGENT = "LofnSeedScript/1.0"
 

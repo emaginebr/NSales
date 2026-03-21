@@ -3,7 +3,7 @@
 > Documentação completa da API REST do backend Lofn para implementação do frontend. Inclui todos os endpoints, DTOs, enums e estruturas de dados.
 
 **Created:** 2026-03-18
-**Last Updated:** 2026-03-19
+**Last Updated:** 2026-03-21
 
 ---
 
@@ -404,7 +404,26 @@ O token é validado via `NAuth`. Caso inválido ou ausente, retorna `401 Unautho
 
 ## GraphQL API
 
-A API expõe dois endpoints GraphQL via HotChocolate, ambos com suporte a **projection**, **filtering** e **sorting**.
+A API expõe dois endpoints GraphQL via HotChocolate, ambos com suporte a **offset-based pagination**, **projection**, **filtering** e **sorting**.
+
+#### Paginação (Offset-Based)
+
+Todas as queries que retornam listas suportam paginação offset-based com os seguintes argumentos:
+
+| Argumento | Tipo | Default | Descrição |
+|-----------|------|---------|-----------|
+| `skip` | `Int` | `0` | Quantidade de registros a pular |
+| `take` | `Int` | `10` | Quantidade de registros a retornar (máx: 50) |
+
+O retorno é envelopado em um tipo `CollectionSegment` com a seguinte estrutura:
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `items` | `[T]` | Lista de itens da página atual |
+| `pageInfo` | `CollectionSegmentInfo` | Informações de navegação (`hasNextPage`, `hasPreviousPage`) |
+| `totalCount` | `Int` | Total de registros (sempre disponível) |
+
+> **Nota:** A query `storeBySlug` não utiliza paginação pois retorna um único registro.
 
 ### Endpoint Público: `/graphql`
 
@@ -416,11 +435,11 @@ Não requer autenticação. Expõe apenas dados ativos/públicos.
 
 | Query | Retorno | Descrição |
 |-------|---------|-----------|
-| `stores` | `[Store]` | Lojas ativas (`status = 1`) |
-| `products` | `[Product]` | Produtos ativos (`status = 1`) |
-| `categories` | `[Category]` | Categorias que possuem pelo menos 1 produto ativo |
-| `storeBySlug(slug: String!)` | `[Store]` | Loja ativa pelo slug |
-| `featuredProducts(storeSlug: String!)` | `[Product]` | Produtos ativos e em destaque da loja |
+| `stores(skip, take)` | `StoreCollectionSegment` | Lojas ativas (`status = 1`) |
+| `products(skip, take)` | `ProductCollectionSegment` | Produtos ativos (`status = 1`) |
+| `categories(skip, take)` | `CategoryCollectionSegment` | Categorias que possuem pelo menos 1 produto ativo |
+| `storeBySlug(slug: String!)` | `[Store]` | Loja ativa pelo slug (sem paginação) |
+| `featuredProducts(storeSlug: String!, skip, take)` | `ProductCollectionSegment` | Produtos ativos e em destaque da loja |
 
 #### Campos ocultos no schema público
 
@@ -430,22 +449,29 @@ O tipo `Store` no endpoint público **não expõe**: `storeUsers`, `ownerId`.
 
 ```graphql
 {
-  stores {
-    storeId
-    name
-    slug
-    logoUrl
-    products {
-      productId
+  stores(skip: 0, take: 10) {
+    items {
+      storeId
       name
-      price
-      imageUrl
-      productImages { imageUrl sortOrder }
+      slug
+      logoUrl
+      products {
+        productId
+        name
+        price
+        imageUrl
+        productImages { imageUrl sortOrder }
+      }
+      categories {
+        name
+        productCount
+      }
     }
-    categories {
-      name
-      productCount
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
     }
+    totalCount
   }
 }
 ```
@@ -462,28 +488,35 @@ Todas as queries são filtradas automaticamente pelas lojas vinculadas ao usuár
 
 | Query | Retorno | Descrição |
 |-------|---------|-----------|
-| `myStores` | `[Store]` | Todas as lojas do usuário (qualquer status) |
-| `myProducts` | `[Product]` | Todos os produtos das lojas do usuário (qualquer status) |
-| `myCategories` | `[Category]` | Todas as categorias das lojas do usuário |
+| `myStores(skip, take)` | `StoreCollectionSegment` | Todas as lojas do usuário (qualquer status) |
+| `myProducts(skip, take)` | `ProductCollectionSegment` | Todos os produtos das lojas do usuário (qualquer status) |
+| `myCategories(skip, take)` | `CategoryCollectionSegment` | Todas as categorias das lojas do usuário |
 #### Exemplo
 
 ```graphql
 {
-  myStores {
-    storeId
-    name
-    logoUrl
-    products {
-      productId
+  myStores(skip: 0, take: 10) {
+    items {
+      storeId
       name
-      price
-      imageUrl
-      status
+      logoUrl
+      products {
+        productId
+        name
+        price
+        imageUrl
+        status
+      }
+      categories {
+        name
+        productCount
+      }
     }
-    categories {
-      name
-      productCount
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
     }
+    totalCount
   }
 }
 ```
@@ -508,24 +541,34 @@ Os tipos GraphQL mapeiam diretamente as entidades do banco de dados, com as navi
 
 Todos os campos escalares suportam filtering e sorting via argumentos gerados automaticamente pelo HotChocolate.
 
-**Exemplo de filtering:**
+**Exemplo de paginação com filtering:**
 ```graphql
 {
-  products(where: { price: { gte: 10 }, name: { contains: "premium" } }) {
-    productId
-    name
-    price
+  products(skip: 0, take: 10, where: { price: { gte: 10 }, name: { contains: "premium" } }) {
+    items {
+      productId
+      name
+      price
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+    }
+    totalCount
   }
 }
 ```
 
-**Exemplo de sorting:**
+**Exemplo de paginação com sorting:**
 ```graphql
 {
-  products(order: { price: DESC }) {
-    productId
-    name
-    price
+  products(skip: 0, take: 10, order: { price: DESC }) {
+    items {
+      productId
+      name
+      price
+    }
+    totalCount
   }
 }
 ```
@@ -558,4 +601,4 @@ DTO externo do pacote NAuth, referenciado em `ShopCarInfo.User` e `StoreUserInfo
 - **Endpoints GraphQL autenticados:** `/graphql/admin` (myStores, myProducts, myCategories)
 - **Todos os demais endpoints REST requerem Bearer Token**
 - **Serialização JSON:** propriedades em `camelCase` via `[JsonPropertyName]`
-- **Leituras migradas para GraphQL:** listagem e busca de stores, products e categories agora são feitas exclusivamente via GraphQL, com suporte a projection, filtering e sorting
+- **Leituras migradas para GraphQL:** listagem e busca de stores, products e categories agora são feitas exclusivamente via GraphQL, com suporte a paginação offset-based, projection, filtering e sorting

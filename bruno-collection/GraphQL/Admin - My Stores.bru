@@ -16,30 +16,37 @@ auth:bearer {
 
 body:graphql {
   {
-    myStores {
-      storeId
-      name
-      slug
-      logo
-      logoUrl
-      status
-      products {
-        productId
+    myStores(skip: 0, take: 10) {
+      items {
+        storeId
         name
-        price
-        imageUrl
+        slug
+        logo
+        logoUrl
         status
+        products {
+          productId
+          name
+          price
+          imageUrl
+          status
+        }
+        categories {
+          categoryId
+          name
+          productCount
+        }
+        orders {
+          orderId
+          status
+          createdAt
+        }
       }
-      categories {
-        categoryId
-        name
-        productCount
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
       }
-      orders {
-        orderId
-        status
-        createdAt
-      }
+      totalCount
     }
   }
 }

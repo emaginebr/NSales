@@ -12,21 +12,28 @@ post {
 
 body:graphql {
   {
-    featuredProducts(storeSlug: "minha-loja") {
-      productId
-      name
-      slug
-      price
-      image
-      imageUrl
-      description
-      featured
-      productImages {
-        imageId
+    featuredProducts(storeSlug: "minha-loja", skip: 0, take: 10) {
+      items {
+        productId
+        name
+        slug
+        price
         image
         imageUrl
-        sortOrder
+        description
+        featured
+        productImages {
+          imageId
+          image
+          imageUrl
+          sortOrder
+        }
       }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+      }
+      totalCount
     }
   }
 }

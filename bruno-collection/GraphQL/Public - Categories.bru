@@ -12,21 +12,28 @@ post {
 
 body:graphql {
   {
-    categories {
-      categoryId
-      name
-      slug
-      productCount
-      store {
-        storeId
+    categories(skip: 0, take: 10) {
+      items {
+        categoryId
         name
+        slug
+        productCount
+        store {
+          storeId
+          name
+        }
+        products {
+          productId
+          name
+          price
+          imageUrl
+        }
       }
-      products {
-        productId
-        name
-        price
-        imageUrl
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
       }
+      totalCount
     }
   }
 }

@@ -2,6 +2,7 @@ using System.Linq;
 using HotChocolate;
 using HotChocolate.Authorization;
 using HotChocolate.Data;
+using HotChocolate.Types;
 using Lofn.Infra.Context;
 using Microsoft.AspNetCore.Http;
 using NAuth.ACL.Interfaces;
@@ -20,6 +21,7 @@ public class AdminQuery
             .Select(su => su.StoreId);
     }
 
+    [UseOffsetPaging]
     [UseProjection]
     [UseFiltering]
     [UseSorting]
@@ -32,6 +34,7 @@ public class AdminQuery
         return context.Stores.Where(s => storeIds.Contains(s.StoreId));
     }
 
+    [UseOffsetPaging]
     [UseProjection]
     [UseFiltering]
     [UseSorting]
@@ -44,6 +47,7 @@ public class AdminQuery
         return context.Products.Where(p => p.StoreId.HasValue && storeIds.Contains(p.StoreId.Value));
     }
 
+    [UseOffsetPaging]
     [UseProjection]
     [UseFiltering]
     [UseSorting]
