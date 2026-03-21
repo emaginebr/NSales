@@ -125,8 +125,8 @@ namespace Lofn.Domain.Services
                 Status = product.Status,
                 ProductType = product.ProductType,
                 Featured = product.Featured,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
             };
             model.Slug = await GenerateSlugAsync(storeId, 0, product.Name);
 
@@ -160,7 +160,7 @@ namespace Lofn.Domain.Services
             existing.Status = product.Status;
             existing.ProductType = product.ProductType;
             existing.Featured = product.Featured;
-            existing.UpdatedAt = DateTime.UtcNow;
+            existing.UpdatedAt = DateTime.Now;
             existing.Slug = await GenerateSlugAsync(storeId, product.ProductId, product.Name);
 
             return await _productRepository.UpdateAsync(existing);
