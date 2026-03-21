@@ -8,7 +8,7 @@
     <PackageReference Include="AWSSDK.S3" Version="4.0.6.12" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.3.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.8" />
-    <PackageReference Include="NAuth" Version="0.5.2" />
+    <PackageReference Include="NAuth" Version="0.5.5" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NoobsMuc.Coinmarketcap.Client" Version="3.1.1" />
     <PackageReference Include="Stripe.net" Version="48.5.0" />

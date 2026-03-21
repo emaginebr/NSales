@@ -16,6 +16,7 @@ using Lofn.ACL;
 using Lofn.ACL.Handlers;
 using Lofn.ACL.Interfaces;
 using Lofn.Domain;
+using Microsoft.Extensions.Configuration;
 using NAuth.ACL;
 using NAuth.ACL.Interfaces;
 using zTools.ACL.Interfaces;
@@ -81,8 +82,9 @@ namespace Lofn.Application
             injectDependency(typeof(IShopCarService), typeof(ShopCarService), services, scoped);
             #endregion
 
-            services.AddAuthentication("BasicAuthentication")
-                .AddScheme<AuthenticationSchemeOptions, NAuthHandler>("BasicAuthentication", null);
+            services.AddScoped<ITenantSecretProvider, NAuthTenantSecretProvider>();
+            services.AddNAuth<NAuthTenantProvider>();
+            services.AddNAuthAuthentication("BasicAuthentication");
         }
     }
 }
