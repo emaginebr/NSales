@@ -1,0 +1,49 @@
+meta {
+  name: Public - Products by Category
+  type: graphql
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/graphql
+  body: graphql
+  auth: none
+}
+
+body:graphql {
+  query ($where: ProductFilterInput, $skip: Int, $take: Int) {
+    products(where: $where, order: { name: ASC }, skip: $skip, take: $take) {
+      items {
+        productId
+        slug
+        name
+        price
+        discount
+        imageUrl
+        productImages { imageId imageUrl sortOrder }
+        category { slug name }
+      }
+      pageInfo { hasNextPage hasPreviousPage }
+      totalCount
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+    "where": {
+      "store": {
+        "slug": {
+          "eq": "loja-de-informatica"
+        }
+      },
+      "category": {
+        "slug": {
+          "eq": "produto"
+        }
+      }
+    },
+    "skip": 0,
+    "take": 50
+  }
+}

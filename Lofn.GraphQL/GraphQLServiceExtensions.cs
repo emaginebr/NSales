@@ -31,7 +31,7 @@ public static class GraphQLServiceExtensions
             .AddProjections()
             .AddFiltering()
             .AddSorting()
-            .ModifyCostOptions(o => o.MaxFieldCost = 5000);
+            .ModifyCostOptions(o => o.MaxFieldCost = 8000);
 
         services
             .AddGraphQLServer("admin")
@@ -51,7 +51,7 @@ public static class GraphQLServiceExtensions
             .AddProjections()
             .AddFiltering()
             .AddSorting()
-            .ModifyCostOptions(o => o.MaxFieldCost = 5000);
+            .ModifyCostOptions(o => o.MaxFieldCost = 8000);
 
         return services;
     }
