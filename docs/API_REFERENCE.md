@@ -178,6 +178,11 @@ O token é validado via `NAuth`. Caso inválido ou ausente, retorna `401 Unautho
 - **Auth:** Requerida
 - **Request Body:** `ShopCartInfo`
 - **Response:** `ShopCartInfo`
+- **Validação (FluentValidation):**
+  - `user` — obrigatório, `userId` > 0
+  - `address` — obrigatório, com `zipCode`, `address`, `neighborhood`, `city` e `state` preenchidos
+  - `items` — obrigatório, pelo menos 1 item; cada item com `quantity` > 0 e `product.productId` > 0
+- **Side effect:** Publica o payload como mensagem na fila RabbitMQ (`lofn-shopcart.msg`)
 
 ---
 
@@ -278,15 +283,27 @@ O token é validado via `NAuth`. Caso inválido ou ausente, retorna `401 Unautho
 | Propriedade | Tipo | Descrição |
 |-------------|------|-----------|
 | `user` | `UserInfo` | Dados do usuário (NAuth) |
+| `address` | `ShopCartAddressInfo` | Endereço de entrega |
 | `items` | `ShopCartItemInfo[]` | Itens do carrinho |
 | `createdAt` | `DateTime` | Data de criação |
+
+#### ShopCartAddressInfo
+
+| Propriedade | Tipo | Obrigatório | Descrição |
+|-------------|------|-------------|-----------|
+| `zipCode` | `string` | Sim | CEP |
+| `address` | `string` | Sim | Logradouro |
+| `complement` | `string` | Não | Complemento |
+| `neighborhood` | `string` | Sim | Bairro |
+| `city` | `string` | Sim | Cidade |
+| `state` | `string` | Sim | Estado (UF) |
 
 #### ShopCartItemInfo
 
 | Propriedade | Tipo | Descrição |
 |-------------|------|-----------|
 | `product` | `ProductInfo` | Dados do produto |
-| `quantity` | `int` | Quantidade |
+| `quantity` | `int` | Quantidade (> 0) |
 
 ---
 

@@ -14,6 +14,13 @@ namespace Lofn.Domain.Validators
                 .GreaterThan(0).WithMessage("UserId must be greater than 0")
                 .When(x => x.User != null);
 
+            RuleFor(x => x.Address)
+                .NotNull().WithMessage("Address is required");
+
+            RuleFor(x => x.Address)
+                .SetValidator(new ShopCartAddressInfoValidator())
+                .When(x => x.Address != null);
+
             RuleFor(x => x.Items)
                 .NotNull().WithMessage("Items is required")
                 .Must(items => items != null && items.Count > 0).WithMessage("Items must have at least 1 item");

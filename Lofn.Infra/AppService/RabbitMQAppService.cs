@@ -45,22 +45,36 @@ namespace Lofn.Infra.AppService
             if (_connection != null && _connection.IsOpen)
                 return;
 
-            var factory = new ConnectionFactory
+            _logger.LogInformation("Connecting to RabbitMQ at {HostName}:{Port} as {UserName}",
+                _settings.HostName, _settings.Port, _settings.UserName);
+
+            try
             {
-                HostName = _settings.HostName,
-                Port = _settings.Port,
-                UserName = _settings.UserName,
-                Password = _settings.Password
-            };
+                var factory = new ConnectionFactory
+                {
+                    HostName = _settings.HostName,
+                    Port = _settings.Port,
+                    UserName = _settings.UserName,
+                    Password = _settings.Password
+                };
 
-            _connection = await factory.CreateConnectionAsync();
-            _channel = await _connection.CreateChannelAsync();
+                _connection = await factory.CreateConnectionAsync();
+                _channel = await _connection.CreateChannelAsync();
 
-            await _channel.QueueDeclareAsync(
-                queue: _settings.QueueName,
-                durable: true,
-                exclusive: false,
-                autoDelete: false);
+                await _channel.QueueDeclareAsync(
+                    queue: _settings.QueueName,
+                    durable: true,
+                    exclusive: false,
+                    autoDelete: false);
+
+                _logger.LogInformation("Connected to RabbitMQ, queue {QueueName} declared", _settings.QueueName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to connect to RabbitMQ at {HostName}:{Port} as {UserName}",
+                    _settings.HostName, _settings.Port, _settings.UserName);
+                throw;
+            }
         }
 
         public async ValueTask DisposeAsync()
