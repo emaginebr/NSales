@@ -14,6 +14,8 @@ services:
       Tenants__emagine__JwtSecret: ${EMAGINE_JWT_SECRET}
       Tenants__monexup__ConnectionString: ${MONEXUP_CONNECTION_STRING}
       Tenants__monexup__JwtSecret: ${MONEXUP_JWT_SECRET}
+      RabbitMQ__UserName: ${RABBITMQ_USERNAME}
+      RabbitMQ__Password: ${RABBITMQ_PASSWORD}
     networks:
       - emagine-network
 

@@ -6,7 +6,7 @@ flowchart TD
     client([🌐 Client / Browser])
 
     subgraph api["Lofn.API"]
-        controllers["Controllers\n(Product, Category, Store,\nImage, StoreUser, ShopCar)"]
+        controllers["Controllers\n(Product, Category, Store,\nImage, StoreUser, ShopCart)"]
         swagger["Swagger / OpenAPI"]
         startup_api["Startup\n(Auth, CORS, Tenant)"]
     end
@@ -23,13 +23,13 @@ flowchart TD
     end
 
     subgraph domain["Lofn.Domain"]
-        services["Services\n(Product, Category, Store,\nStoreUser, ShopCar, Image)"]
+        services["Services\n(Product, Category, Store,\nStoreUser, ShopCart, Image)"]
         models["Models\n(Product, Category, Store)"]
         core["Core\n(LogCore, Utils)"]
     end
 
     subgraph nuget["Lofn (Shared Package)"]
-        dto["DTO\n(Product, Category, Store,\nShopCar, Settings, Enums)"]
+        dto["DTO\n(Product, Category, Store,\nShopCart, Settings, Enums)"]
         acl["ACL\n(ProductClient, StoreClient,\nCategoryClient, ImageClient)"]
     end
 

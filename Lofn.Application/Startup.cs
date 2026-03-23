@@ -1,7 +1,9 @@
 using System;
 using Lofn.Infra.Interfaces;
+using Lofn.Infra.Interfaces.AppService;
 using Lofn.Infra.Interfaces.Repository;
 using Lofn.Infra;
+using Lofn.Infra.AppService;
 using Lofn.Infra.Context;
 using Lofn.Infra.Repository;
 using Lofn.Domain.Core;
@@ -48,6 +50,7 @@ namespace Lofn.Application
             #region Infra
             injectDependency(typeof(IUnitOfWork), typeof(UnitOfWork), services, scoped);
             injectDependency(typeof(ILogCore), typeof(LogCore), services, scoped);
+            injectDependency(typeof(IRabbitMQAppService), typeof(RabbitMQAppService), services, scoped);
             #endregion
 
             #region Repository
@@ -79,7 +82,7 @@ namespace Lofn.Application
             injectDependency(typeof(ICategoryService), typeof(CategoryService), services, scoped);
             injectDependency(typeof(IStoreService), typeof(StoreService), services, scoped);
             injectDependency(typeof(IStoreUserService), typeof(StoreUserService), services, scoped);
-            injectDependency(typeof(IShopCarService), typeof(ShopCarService), services, scoped);
+            injectDependency(typeof(IShopCartService), typeof(ShopCartService), services, scoped);
             #endregion
 
             services.AddScoped<ITenantSecretProvider, NAuthTenantSecretProvider>();

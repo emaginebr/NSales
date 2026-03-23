@@ -76,8 +76,8 @@ Lofn/
 │   │   └── ProductTypeEnum.cs
 │   ├── Settings/
 │   │   └── LofnSetting.cs     # API URL + Bucket configuration
-│   ├── ShopCar/
-│   │   └── ShopCarInfo.cs
+│   ├── ShopCart/
+│   │   └── ShopCartInfo.cs
 │   └── Store/
 │       ├── StoreInfo.cs
 │       ├── StoreInsertInfo.cs

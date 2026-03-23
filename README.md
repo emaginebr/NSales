@@ -18,7 +18,7 @@ The solution is organized into 8 layered projects with clear dependency boundari
 
 - 🏪 **Multi-Tenant Networks** - Support for multiple seller networks with isolated data via TenantResolver
 - 📦 **Product Management** - Full CRUD with slug generation, image handling, discount, product types, and paged search
-- 🛒 **Shopping Cart** - ShopCar entity for cart management
+- 🛒 **Shopping Cart** - ShopCart entity for cart management
 - 🏷️ **Category Management** - Categories with automatic product count
 - 🔍 **GraphQL API** - HotChocolate-powered queries with projection, filtering, and sorting
 - 📡 **REST API** - Write operations with Swagger documentation
@@ -78,7 +78,7 @@ The solution is organized into 8 layered projects with clear dependency boundari
 ```
 Lofn/
 ├── Lofn.API/                    # Web API entry point
-│   ├── Controllers/             # REST controllers (Product, Category, Store, Image, StoreUser, ShopCar)
+│   ├── Controllers/             # REST controllers (Product, Category, Store, Image, StoreUser, ShopCart)
 │   ├── Middlewares/             # TenantMiddleware
 │   ├── Startup.cs               # DI, auth, CORS, Swagger, GraphQL endpoints
 │   └── Dockerfile               # Multi-stage Docker build
@@ -96,7 +96,7 @@ Lofn/
 │   └── Mappers/                 # Model ↔ DTO mappers
 ├── Lofn/                        # Shared package (DTOs + ACL)
 │   ├── ACL/                     # Anti-Corruption Layer (external API clients)
-│   └── DTO/                     # Data Transfer Objects (Product, Category, Store, ShopCar)
+│   └── DTO/                     # Data Transfer Objects (Product, Category, Store, ShopCart)
 ├── Lofn.Infra.Interfaces/      # Repository interfaces (IUnitOfWork, IRepository)
 ├── Lofn.Infra/                  # Infrastructure implementation
 │   ├── Context/                 # EF Core DbContext + entities

@@ -18,6 +18,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Lofn.API.Filters;
 using Lofn.GraphQL;
+using Lofn.DTO.Settings;
 using NAuth.DTO.Settings;
 using zTools.DTO.Settings;
 
@@ -37,6 +38,7 @@ namespace Lofn.API
         {
             services.Configure<NAuthSetting>(Configuration.GetSection("NAuth"));
             services.Configure<zToolsetting>(Configuration.GetSection("zTools"));
+            services.Configure<RabbitMQSetting>(Configuration.GetSection("RabbitMQ"));
 
             services.ConfigureLofn();
             services.AddLofnGraphQL();

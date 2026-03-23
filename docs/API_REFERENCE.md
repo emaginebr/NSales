@@ -169,15 +169,15 @@ O token é validado via `NAuth`. Caso inválido ou ausente, retorna `401 Unautho
 
 ---
 
-### 6. ShopCar Controller
+### 6. ShopCart Controller
 
-**Prefixo:** `/shopcar`
+**Prefixo:** `/shopcart`
 
 #### POST `/insert` — Criar carrinho de compras
 
 - **Auth:** Requerida
-- **Request Body:** `ShopCarInfo`
-- **Response:** `ShopCarInfo`
+- **Request Body:** `ShopCartInfo`
+- **Response:** `ShopCartInfo`
 
 ---
 
@@ -271,17 +271,17 @@ O token é validado via `NAuth`. Caso inválido ou ausente, retorna `401 Unautho
 
 ---
 
-### ShopCar
+### ShopCart
 
-#### ShopCarInfo
+#### ShopCartInfo
 
 | Propriedade | Tipo | Descrição |
 |-------------|------|-----------|
 | `user` | `UserInfo` | Dados do usuário (NAuth) |
-| `items` | `ShopCarItemInfo[]` | Itens do carrinho |
+| `items` | `ShopCartItemInfo[]` | Itens do carrinho |
 | `createdAt` | `DateTime` | Data de criação |
 
-#### ShopCarItemInfo
+#### ShopCartItemInfo
 
 | Propriedade | Tipo | Descrição |
 |-------------|------|-----------|
@@ -591,7 +591,7 @@ Todos os campos escalares suportam filtering e sorting via argumentos gerados au
 
 ### UserInfo (NAuth.DTO)
 
-DTO externo do pacote NAuth, referenciado em `ShopCarInfo.User` e `StoreUserInfo.User`. Contém dados do usuário autenticado (ID, nome, email, etc.).
+DTO externo do pacote NAuth, referenciado em `ShopCartInfo.User` e `StoreUserInfo.User`. Contém dados do usuário autenticado (ID, nome, email, etc.).
 
 ---
 
@@ -604,7 +604,7 @@ DTO externo do pacote NAuth, referenciado em `ShopCarInfo.User` e `StoreUserInfo
 | **Image** | 3 (upload, list, delete) | 1 |
 | **Store** | 4 (insert, update, uploadLogo, delete) | 4 (inclui enum) |
 | **StoreUser** | 3 (list, insert, delete) | 2 |
-| **ShopCar** | 1 (insert) | 2 |
+| **ShopCart** | 1 (insert) | 2 |
 | **GraphQL** | 2 endpoints, 8 queries | 5 tipos + 4 campos computados |
 | **Total** | **17 REST + 2 GraphQL** | **25** |
 
