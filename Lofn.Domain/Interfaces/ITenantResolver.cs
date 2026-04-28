@@ -6,5 +6,6 @@ namespace Lofn.Domain.Interfaces
         string ConnectionString { get; }
         string JwtSecret { get; }
         string BucketName { get; }
+        bool Marketplace { get; }
     }
 }

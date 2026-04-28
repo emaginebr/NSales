@@ -9,5 +9,8 @@
       "Bash(dotnet build:*)",
       "Bash(openssl rand:*)"
     ]
+  },
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true
   }
 }

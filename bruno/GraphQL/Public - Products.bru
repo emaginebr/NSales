@@ -1,0 +1,48 @@
+meta {
+  name: Public - Products
+  type: graphql
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/graphql
+  body: graphql
+  auth: none
+}
+
+body:graphql {
+  {
+    products(skip: 0, take: 10) {
+      items {
+        productId
+        name
+        slug
+        price
+        imageUrl
+        description
+        featured
+        status
+        productImages {
+          imageId
+          image
+          imageUrl
+          sortOrder
+        }
+        category {
+          categoryId
+          name
+        }
+        store {
+          storeId
+          name
+          slug
+        }
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+      }
+      totalCount
+    }
+  }
+}

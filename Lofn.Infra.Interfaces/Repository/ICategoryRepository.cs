@@ -7,12 +7,14 @@ namespace Lofn.Infra.Interfaces.Repository
     {
         Task<IEnumerable<TModel>> ListAllAsync();
         Task<IEnumerable<TModel>> ListByStoreAsync(long storeId);
+        Task<IEnumerable<TModel>> ListGlobalAsync();
         Task<TModel> GetByIdAsync(long id);
         Task<TModel> GetBySlugAsync(string slug);
         Task<TModel> InsertAsync(TModel model);
         Task<TModel> UpdateAsync(TModel model);
         Task DeleteAsync(long id);
         Task<bool> ExistSlugAsync(long storeId, long categoryId, string slug);
+        Task<bool> ExistSlugInTenantAsync(long? exceptCategoryId, string slug);
         Task<IDictionary<long, int>> CountProductsByCategoryAsync();
         Task<IDictionary<long, int>> CountActiveProductsByStoreAsync(long storeId);
         Task<TModel> GetBySlugAndStoreAsync(long storeId, string slug);

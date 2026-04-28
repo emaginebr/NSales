@@ -35,6 +35,15 @@ namespace Lofn.Infra.Repository
             return rows.Select(CategoryDbMapper.ToModel);
         }
 
+        public async Task<IEnumerable<CategoryModel>> ListGlobalAsync()
+        {
+            var rows = await _context.Categories
+                .Where(x => x.StoreId == null)
+                .OrderBy(x => x.Name)
+                .ToListAsync();
+            return rows.Select(CategoryDbMapper.ToModel);
+        }
+
         public async Task<CategoryModel> GetByIdAsync(long id)
         {
             var row = await _context.Categories.FindAsync(id);
@@ -86,6 +95,13 @@ namespace Lofn.Infra.Repository
         {
             return await _context.Categories
                 .Where(x => x.StoreId == storeId && x.Slug == slug && (categoryId == 0 || x.CategoryId != categoryId))
+                .AnyAsync();
+        }
+
+        public async Task<bool> ExistSlugInTenantAsync(long? exceptCategoryId, string slug)
+        {
+            return await _context.Categories
+                .Where(x => x.Slug == slug && (exceptCategoryId == null || x.CategoryId != exceptCategoryId.Value))
                 .AnyAsync();
         }
 

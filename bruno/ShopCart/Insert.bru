@@ -1,0 +1,91 @@
+meta {
+  name: Insert
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/shopcart/insert
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+      "user": {
+          "userId": 1,
+          "slug": "rodrigo-landim",
+          "imageUrl": "",
+          "name": "Rodrigo Landim Carneiro",
+          "email": "rodrigo@emagine.com.br",
+          "hash": "pU8MILkTP95axC7-02EyMt2cA6fTNsSv-IK5z6KrbG7iS6n76c8VDVsq39pRVy319DorstlJ5Gy06WByFpqRTSEfmMmSWylIWXV2",
+          "isAdmin": true,
+          "birthDate": null,
+          "idDocument": null,
+          "pixKey": null,
+          "password": null,
+          "status": 1,
+          "roles": [
+              {
+                  "roleId": 1,
+                  "slug": "administrator",
+                  "name": "Administrator"
+              }
+          ],
+          "phones": [
+              {
+                  "phone": "61998752588"
+              }
+          ],
+          "addresses": [
+              {
+                  "zipCode": "73252900",
+                  "address": "Condomínio RK",
+                  "complement": "Conj. Centauros Qd N Casa 42",
+                  "neighborhood": "Sobradinho",
+                  "city": "Brasília",
+                  "state": "DF"
+              }
+          ],
+          "createAt": "2026-03-18T00:00:00",
+          "updateAt": "2026-03-18T14:54:03.750081"
+      },
+      "address": {
+          "zipCode": "73252900",
+          "address": "Condomínio RK",
+          "complement": "Conj. Centauros Qd N Casa 42",
+          "neighborhood": "Sobradinho",
+          "city": "Brasília",
+          "state": "DF"
+      },
+      "items": [
+          {
+              "product": {
+                  "productId": 1,
+                  "slug": "macbook-air-m3",
+                  "name": "MacBook Air M3",
+                  "price": 12999,
+                  "discount": 0,
+                  "description": "## MacBook Air M3\n\nO **MacBook Air** com o revolucionário chip **Apple M3** entrega desempenho excepcional em um design ultrafino e silencioso, sem ventoinha.\n\n### Especificações Técnicas\n\n| Spec | Detalhe |\n|------|--------|\n| Processador | Apple M3 (8-core CPU, 10-core GPU) |\n| Memória | 8GB RAM unificada |\n| Armazenamento | 256GB SSD |\n| Tela | 13.6\" Liquid Retina, 2560x1664 |\n| Bateria | Até 18 horas de uso |\n| Peso | 1.24 kg |\n\n### Destaques\n\n- **Neural Engine** de 16 núcleos para tarefas de IA e Machine Learning\n- Suporte a até **2 monitores externos**\n- **MagSafe** para carregamento seguro\n- Webcam **1080p FaceTime HD**\n- Áudio com **4 alto-falantes** e Spatial Audio\n\n> *Ideal para profissionais criativos, estudantes e quem busca portabilidade sem abrir mão de performance.*",
+                  "status": 1,
+                  "productType": 1,
+                  "featured": true,
+                  "imageUrl": "https://emagine.nyc3.digitaloceanspaces.com/lofn/macbook-air-m3.png",
+                  "images": [
+                      {
+                          "imageId": 1,
+                          "imageUrl": "https://emagine.nyc3.digitaloceanspaces.com/lofn/macbook-air-m3.png",
+                          "sortOrder": 0
+                      }
+                  ]
+              },
+              "quantity": 1
+          }
+      ],
+      "createdAt": "2026-03-23T17:43:42.115Z"
+  }
+}

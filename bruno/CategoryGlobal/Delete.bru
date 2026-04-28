@@ -1,0 +1,19 @@
+meta {
+  name: Delete
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{baseUrl}}/category-global/delete/:categoryId
+  body: none
+  auth: bearer
+}
+
+params:path {
+  categoryId: 1
+}
+
+auth:bearer {
+  token: {{token}}
+}

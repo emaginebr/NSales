@@ -3,6 +3,7 @@ using HotChocolate;
 using HotChocolate.Authorization;
 using HotChocolate.Data;
 using HotChocolate.Types;
+using Lofn.Domain.Interfaces;
 using Lofn.Infra.Context;
 using Microsoft.AspNetCore.Http;
 using NAuth.ACL.Interfaces;
@@ -54,8 +55,12 @@ public class AdminQuery
     public IQueryable<Category> GetMyCategories(
         LofnContext context,
         IHttpContextAccessor httpContextAccessor,
-        [Service] IUserClient userClient)
+        [Service] IUserClient userClient,
+        [Service] ITenantResolver tenantResolver)
     {
+        if (tenantResolver.Marketplace)
+            return context.Categories.Where(c => c.StoreId == null);
+
         var storeIds = GetUserStoreIds(context, httpContextAccessor, userClient);
         return context.Categories.Where(c => c.StoreId.HasValue && storeIds.Contains(c.StoreId.Value));
     }

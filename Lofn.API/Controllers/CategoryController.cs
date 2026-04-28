@@ -15,22 +15,28 @@ namespace Lofn.API.Controllers
         private readonly IUserClient _userClient;
         private readonly ICategoryService _categoryService;
         private readonly IStoreService _storeService;
+        private readonly ITenantResolver _tenantResolver;
 
         public CategoryController(
             IUserClient userClient,
             ICategoryService categoryService,
-            IStoreService storeService
+            IStoreService storeService,
+            ITenantResolver tenantResolver
         )
         {
             _userClient = userClient;
             _categoryService = categoryService;
             _storeService = storeService;
+            _tenantResolver = tenantResolver;
         }
 
         [Authorize]
         [HttpPost("{storeSlug}/insert")]
         public async Task<ActionResult<CategoryInfo>> Insert(string storeSlug, [FromBody] CategoryInsertInfo category)
         {
+            if (_tenantResolver.Marketplace)
+                return Forbid();
+
             var userSession = _userClient.GetUserInSession(HttpContext);
             if (userSession == null)
                 return Unauthorized();
@@ -47,6 +53,9 @@ namespace Lofn.API.Controllers
         [HttpPost("{storeSlug}/update")]
         public async Task<ActionResult<CategoryInfo>> Update(string storeSlug, [FromBody] CategoryUpdateInfo category)
         {
+            if (_tenantResolver.Marketplace)
+                return Forbid();
+
             var userSession = _userClient.GetUserInSession(HttpContext);
             if (userSession == null)
                 return Unauthorized();
@@ -63,6 +72,9 @@ namespace Lofn.API.Controllers
         [HttpDelete("{storeSlug}/delete/{categoryId}")]
         public async Task<IActionResult> Delete(string storeSlug, long categoryId)
         {
+            if (_tenantResolver.Marketplace)
+                return Forbid();
+
             var userSession = _userClient.GetUserInSession(HttpContext);
             if (userSession == null)
                 return Unauthorized();

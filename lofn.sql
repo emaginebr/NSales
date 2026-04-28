@@ -31,6 +31,13 @@ CREATE TABLE lofn_categories (
     CONSTRAINT fk_lofn_category_store FOREIGN KEY (store_id) REFERENCES lofn_stores (store_id)
 );
 
+-- Tenant-global category slug uniqueness (FR-015 / 001-marketplace-categories).
+-- Enforces that no two tenant-global categories (store_id IS NULL) share the same slug.
+-- Per-store slug uniqueness is enforced at the service layer (CategoryService.GenerateSlugAsync).
+CREATE UNIQUE INDEX ix_lofn_categories_slug_global
+    ON lofn_categories (slug)
+    WHERE store_id IS NULL;
+
 CREATE TABLE lofn_products (
     product_id BIGSERIAL NOT NULL,
     user_id BIGINT NOT NULL,

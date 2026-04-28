@@ -1,5 +1,6 @@
 using Lofn.Domain.Interfaces;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace Lofn.Application
 {
@@ -7,11 +8,16 @@ namespace Lofn.Application
     {
         private readonly IConfiguration _configuration;
         private readonly ITenantContext _tenantContext;
+        private readonly ILogger<TenantResolver> _logger;
 
-        public TenantResolver(IConfiguration configuration, ITenantContext tenantContext)
+        public TenantResolver(
+            IConfiguration configuration,
+            ITenantContext tenantContext,
+            ILogger<TenantResolver> logger)
         {
             _configuration = configuration;
             _tenantContext = tenantContext;
+            _logger = logger;
         }
 
         public string TenantId
@@ -64,6 +70,23 @@ namespace Lofn.Application
                         $"BucketName not found for tenant '{TenantId}'. " +
                         $"Expected key: Tenants:{TenantId}:BucketName");
                 return bucket;
+            }
+        }
+
+        public bool Marketplace
+        {
+            get
+            {
+                var raw = _configuration[$"Tenants:{TenantId}:Marketplace"];
+                if (string.IsNullOrEmpty(raw))
+                    return false;
+                if (bool.TryParse(raw, out var parsed))
+                    return parsed;
+
+                _logger.LogWarning(
+                    "Tenants:{TenantId}:Marketplace has malformed value '{Value}'. Falling back to false.",
+                    TenantId, raw);
+                return false;
             }
         }
     }
