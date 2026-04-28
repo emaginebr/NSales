@@ -4,6 +4,8 @@ using Lofn.Domain.Models;
 using Lofn.Domain.Interfaces;
 using Lofn.DTO.Category;
 using zTools.ACL.Interfaces;
+using FluentValidation;
+using FluentValidation.Results;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,16 +18,22 @@ namespace Lofn.Domain.Services
         private readonly IStringClient _stringClient;
         private readonly ICategoryRepository<CategoryModel> _categoryRepository;
         private readonly IStoreRepository<StoreModel> _storeRepository;
+        private readonly IValidator<CategoryGlobalInsertInfo> _globalInsertValidator;
+        private readonly IValidator<CategoryGlobalUpdateInfo> _globalUpdateValidator;
 
         public CategoryService(
             IStringClient stringClient,
             ICategoryRepository<CategoryModel> categoryRepository,
-            IStoreRepository<StoreModel> storeRepository
+            IStoreRepository<StoreModel> storeRepository,
+            IValidator<CategoryGlobalInsertInfo> globalInsertValidator,
+            IValidator<CategoryGlobalUpdateInfo> globalUpdateValidator
         )
         {
             _stringClient = stringClient;
             _categoryRepository = categoryRepository;
             _storeRepository = storeRepository;
+            _globalInsertValidator = globalInsertValidator;
+            _globalUpdateValidator = globalUpdateValidator;
         }
 
         public async Task<IList<CategoryInfo>> ListAllAsync()
@@ -37,6 +45,12 @@ namespace Lofn.Domain.Services
         public async Task<IList<CategoryInfo>> ListByStoreAsync(long storeId)
         {
             var items = await _categoryRepository.ListByStoreAsync(storeId);
+            return items.Select(CategoryMapper.ToInfo).ToList();
+        }
+
+        public async Task<IList<CategoryInfo>> ListGlobalAsync()
+        {
+            var items = await _categoryRepository.ListGlobalAsync();
             return items.Select(CategoryMapper.ToInfo).ToList();
         }
 
@@ -111,7 +125,7 @@ namespace Lofn.Domain.Services
             return model;
         }
 
-        private async Task<string> GenerateSlugAsync(long storeId, long categoryId, string name)
+        private async Task<string> GenerateSlugAsync(long? exceptCategoryId, string name)
         {
             string newSlug;
             int c = 0;
@@ -123,7 +137,7 @@ namespace Lofn.Domain.Services
                     newSlug += c.ToString();
                 }
                 c++;
-            } while (await _categoryRepository.ExistSlugAsync(storeId, categoryId, newSlug));
+            } while (await _categoryRepository.ExistSlugInTenantAsync(exceptCategoryId, newSlug));
             return newSlug;
         }
 
@@ -139,7 +153,7 @@ namespace Lofn.Domain.Services
                 Name = category.Name,
                 StoreId = storeId
             };
-            model.Slug = await GenerateSlugAsync(storeId, 0, category.Name);
+            model.Slug = await GenerateSlugAsync(null, category.Name);
 
             return await _categoryRepository.InsertAsync(model);
         }
@@ -159,7 +173,7 @@ namespace Lofn.Domain.Services
                 throw new UnauthorizedAccessException("Access denied: category does not belong to this store");
 
             existing.Name = category.Name;
-            existing.Slug = await GenerateSlugAsync(storeId, category.CategoryId, category.Name);
+            existing.Slug = await GenerateSlugAsync(category.CategoryId, category.Name);
 
             return await _categoryRepository.UpdateAsync(existing);
         }
@@ -176,6 +190,56 @@ namespace Lofn.Domain.Services
                 throw new UnauthorizedAccessException("Access denied: category does not belong to this store");
 
             await _categoryRepository.DeleteAsync(categoryId);
+        }
+
+        public async Task<CategoryInfo> InsertGlobalAsync(CategoryGlobalInsertInfo category)
+        {
+            await _globalInsertValidator.ValidateAndThrowAsync(category);
+
+            var model = new CategoryModel
+            {
+                Name = category.Name,
+                StoreId = null
+            };
+            model.Slug = await GenerateSlugAsync(null, category.Name);
+
+            var inserted = await _categoryRepository.InsertAsync(model);
+            return CategoryMapper.ToInfo(inserted);
+        }
+
+        public async Task<CategoryInfo> UpdateGlobalAsync(CategoryGlobalUpdateInfo category)
+        {
+            await _globalUpdateValidator.ValidateAndThrowAsync(category);
+
+            var existing = await _categoryRepository.GetByIdAsync(category.CategoryId);
+            if (existing == null)
+                throw BuildValidationException($"Category {category.CategoryId} not found");
+
+            if (existing.StoreId != null)
+                throw BuildValidationException($"Category {category.CategoryId} is not global");
+
+            existing.Name = category.Name;
+            existing.Slug = await GenerateSlugAsync(category.CategoryId, category.Name);
+
+            var updated = await _categoryRepository.UpdateAsync(existing);
+            return CategoryMapper.ToInfo(updated);
+        }
+
+        public async Task DeleteGlobalAsync(long categoryId)
+        {
+            var existing = await _categoryRepository.GetByIdAsync(categoryId);
+            if (existing == null)
+                throw BuildValidationException($"Category {categoryId} not found");
+
+            if (existing.StoreId != null)
+                throw BuildValidationException($"Category {categoryId} is not global");
+
+            await _categoryRepository.DeleteAsync(categoryId);
+        }
+
+        private static ValidationException BuildValidationException(string message)
+        {
+            return new ValidationException(message, new[] { new ValidationFailure(string.Empty, message) });
         }
     }
 }

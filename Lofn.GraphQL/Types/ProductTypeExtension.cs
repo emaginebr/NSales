@@ -17,13 +17,17 @@ public class ProductTypeExtension : ObjectTypeExtension<Product>
             .Resolve(async ctx =>
             {
                 var product = ctx.Parent<Product>();
-                var dbContext = ctx.Service<LofnContext>();
+                var dbContextFactory = ctx.Service<TenantDbContextFactory>();
 
-                var firstImage = await dbContext.ProductImages
-                    .Where(i => i.ProductId == product.ProductId)
-                    .OrderBy(i => i.SortOrder)
-                    .Select(i => i.Image)
-                    .FirstOrDefaultAsync();
+                string? firstImage;
+                using (var dbContext = dbContextFactory.CreateDbContext())
+                {
+                    firstImage = await dbContext.ProductImages
+                        .Where(i => i.ProductId == product.ProductId)
+                        .OrderBy(i => i.SortOrder)
+                        .Select(i => i.Image)
+                        .FirstOrDefaultAsync();
+                }
 
                 if (string.IsNullOrEmpty(firstImage))
                     return null;

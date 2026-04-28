@@ -1,4 +1,4 @@
-# CLAUDE.md
+﻿# CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -72,7 +72,7 @@ Types/                      → ObjectType extensions adding computed fields via
 - `StoreTypeExtension` → `logoUrl` (resolves via IFileClient)
 - `ProductTypeExtension` → `imageUrl` (resolves via IFileClient)
 - `ProductImageTypeExtension` → `imageUrl` (resolves via IFileClient)
-- `CategoryTypeExtension` → `productCount` (counts active products via navigation property)
+- `CategoryTypeExtension` → `productCount` (counts active products via navigation property), `isGlobal` (true when `StoreId` is null)
 
 **Key patterns:**
 - Queries return `IQueryable<Entity>` directly from EF Core DbContext (no DTOs)
@@ -113,10 +113,16 @@ lib/nauth-core/ → Auth library
 - `POST /product/{storeSlug}/update` — [Authorize] update product
 - `POST /product/search` — public product search with pagination
 
-**REST — Category** (`/category`):
-- `POST /category/{storeSlug}/insert` — [Authorize] create category
-- `POST /category/{storeSlug}/update` — [Authorize] update category
-- `DELETE /category/{storeSlug}/delete/{categoryId}` — [Authorize] delete category
+**REST — Category** (`/category`) — store-scoped, available only when tenant `Marketplace = false`:
+- `POST /category/{storeSlug}/insert` — [Authorize] create category (returns 403 if `Marketplace = true`)
+- `POST /category/{storeSlug}/update` — [Authorize] update category (returns 403 if `Marketplace = true`)
+- `DELETE /category/{storeSlug}/delete/{categoryId}` — [Authorize] delete category (returns 403 if `Marketplace = true`)
+
+**REST — CategoryGlobal** (`/category-global`) — tenant-global catalog, requires `IsAdmin = true` AND tenant `Marketplace = true`:
+- `POST /category-global/insert` — [Authorize][MarketplaceAdmin] create global category
+- `POST /category-global/update` — [Authorize][MarketplaceAdmin] update global category
+- `DELETE /category-global/delete/{categoryId}` — [Authorize][MarketplaceAdmin] delete global category
+- `GET /category-global/list` — [Authorize][MarketplaceAdmin] list global categories
 
 **REST — Order** (`/order`):
 - `POST /order/update` — [Authorize] update order

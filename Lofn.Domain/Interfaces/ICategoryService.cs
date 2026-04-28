@@ -16,5 +16,10 @@ namespace Lofn.Domain.Interfaces
         Task<CategoryModel> InsertAsync(CategoryInsertInfo category, long storeId, long userId);
         Task<CategoryModel> UpdateAsync(CategoryUpdateInfo category, long storeId, long userId);
         Task DeleteAsync(long categoryId, long storeId, long userId);
+
+        Task<CategoryInfo> InsertGlobalAsync(CategoryGlobalInsertInfo category);
+        Task<CategoryInfo> UpdateGlobalAsync(CategoryGlobalUpdateInfo category);
+        Task DeleteGlobalAsync(long categoryId);
+        Task<IList<CategoryInfo>> ListGlobalAsync();
     }
 }

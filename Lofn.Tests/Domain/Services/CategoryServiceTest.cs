@@ -5,6 +5,8 @@ using Lofn.Domain.Models;
 using Lofn.DTO.Category;
 using Lofn.Infra.Interfaces.Repository;
 using zTools.ACL.Interfaces;
+using FluentValidation;
+using FluentValidation.Results;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -16,6 +18,8 @@ namespace Lofn.Tests.Domain.Services
         private readonly Mock<IStringClient> _stringClientMock;
         private readonly Mock<ICategoryRepository<CategoryModel>> _categoryRepositoryMock;
         private readonly Mock<IStoreRepository<StoreModel>> _storeRepositoryMock;
+        private readonly Mock<IValidator<CategoryGlobalInsertInfo>> _globalInsertValidatorMock;
+        private readonly Mock<IValidator<CategoryGlobalUpdateInfo>> _globalUpdateValidatorMock;
         private readonly CategoryService _sut;
 
         private readonly StoreModel _validStore = new StoreModel { StoreId = 1, OwnerId = 1, Name = "Loja", Slug = "loja" };
@@ -25,10 +29,20 @@ namespace Lofn.Tests.Domain.Services
             _stringClientMock = new Mock<IStringClient>();
             _categoryRepositoryMock = new Mock<ICategoryRepository<CategoryModel>>();
             _storeRepositoryMock = new Mock<IStoreRepository<StoreModel>>();
+            _globalInsertValidatorMock = new Mock<IValidator<CategoryGlobalInsertInfo>>();
+            _globalUpdateValidatorMock = new Mock<IValidator<CategoryGlobalUpdateInfo>>();
+            _globalInsertValidatorMock
+                .Setup(x => x.ValidateAsync(It.IsAny<ValidationContext<CategoryGlobalInsertInfo>>(), It.IsAny<System.Threading.CancellationToken>()))
+                .ReturnsAsync(new ValidationResult());
+            _globalUpdateValidatorMock
+                .Setup(x => x.ValidateAsync(It.IsAny<ValidationContext<CategoryGlobalUpdateInfo>>(), It.IsAny<System.Threading.CancellationToken>()))
+                .ReturnsAsync(new ValidationResult());
             _sut = new CategoryService(
                 _stringClientMock.Object,
                 _categoryRepositoryMock.Object,
-                _storeRepositoryMock.Object
+                _storeRepositoryMock.Object,
+                _globalInsertValidatorMock.Object,
+                _globalUpdateValidatorMock.Object
             );
         }
 
@@ -65,14 +79,14 @@ namespace Lofn.Tests.Domain.Services
             var category = new CategoryInsertInfo { Name = "Eletrônicos" };
             _storeRepositoryMock.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(_validStore);
             _stringClientMock.Setup(x => x.GenerateSlugAsync("Eletrônicos")).ReturnsAsync("eletronicos");
-            _categoryRepositoryMock.Setup(x => x.ExistSlugAsync(1, 0, "eletronicos")).ReturnsAsync(false);
+            _categoryRepositoryMock.Setup(x => x.ExistSlugInTenantAsync(null, "eletronicos")).ReturnsAsync(false);
             _categoryRepositoryMock.Setup(x => x.InsertAsync(It.IsAny<CategoryModel>()))
                 .ReturnsAsync(new CategoryModel { CategoryId = 1, Name = "Eletrônicos", Slug = "eletronicos", StoreId = 1 });
 
             var result = await _sut.InsertAsync(category, 1, 1);
 
             Assert.Equal("Eletrônicos", result.Name);
-            Assert.Equal(1, result.StoreId);
+            Assert.Equal((long?)1, result.StoreId);
         }
 
         [Fact]

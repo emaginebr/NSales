@@ -98,6 +98,11 @@ public partial class LofnContext : DbContext
                 .HasForeignKey(d => d.StoreId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_lofn_category_store");
+
+            entity.HasIndex(e => e.Slug)
+                .IsUnique()
+                .HasDatabaseName("ix_lofn_categories_slug_global")
+                .HasFilter("store_id IS NULL");
         });
 
         modelBuilder.Entity<Store>(entity =>

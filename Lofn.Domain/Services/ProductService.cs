@@ -4,6 +4,8 @@ using Lofn.Domain.Models;
 using Lofn.Domain.Interfaces;
 using Lofn.DTO.Product;
 using zTools.ACL.Interfaces;
+using FluentValidation;
+using FluentValidation.Results;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -51,6 +53,30 @@ namespace Lofn.Domain.Services
 
             if (!await _storeUserRepository.ExistsAsync(storeId, userId))
                 throw new UnauthorizedAccessException("Access denied: user does not belong to this store");
+        }
+
+        private async Task AssertCategoryAllowedAsync(long? categoryId, long storeId)
+        {
+            if (categoryId is null) return;
+
+            var cat = await _categoryRepository.GetByIdAsync(categoryId.Value)
+                ?? throw BuildValidationException($"Category {categoryId} not found");
+
+            if (_tenantResolver.Marketplace)
+            {
+                if (cat.StoreId != null)
+                    throw BuildValidationException("CategoryId must reference a tenant-global category in marketplace mode");
+            }
+            else
+            {
+                if (cat.StoreId != storeId)
+                    throw BuildValidationException("CategoryId does not belong to this store");
+            }
+        }
+
+        private static ValidationException BuildValidationException(string message)
+        {
+            return new ValidationException(message, new[] { new ValidationFailure(string.Empty, message) });
         }
 
         public async Task<ProductModel> GetByIdAsync(long productId)
@@ -109,6 +135,7 @@ namespace Lofn.Domain.Services
                 throw new Exception("Price is required");
 
             await ValidateStoreUserAsync(storeId, userId);
+            await AssertCategoryAllowedAsync(product.CategoryId, storeId);
 
             var model = new ProductModel
             {
@@ -141,6 +168,7 @@ namespace Lofn.Domain.Services
                 throw new Exception("Price is required");
 
             await ValidateStoreUserAsync(storeId, userId);
+            await AssertCategoryAllowedAsync(product.CategoryId, storeId);
 
             var existing = await _productRepository.GetByIdAsync(product.ProductId);
             if (existing == null)

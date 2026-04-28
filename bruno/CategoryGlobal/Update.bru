@@ -1,0 +1,22 @@
+meta {
+  name: Update
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/category-global/update
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "categoryId": 1,
+    "name": "Periféricos & Acessórios"
+  }
+}
