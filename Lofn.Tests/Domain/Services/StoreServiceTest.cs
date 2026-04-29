@@ -1,10 +1,10 @@
 using Xunit;
 using Moq;
+using Lofn.Domain.Core;
 using Lofn.Domain.Services;
 using Lofn.Domain.Models;
 using Lofn.DTO.Store;
 using Lofn.Infra.Interfaces.Repository;
-using zTools.ACL.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,18 +14,18 @@ namespace Lofn.Tests.Domain.Services
 {
     public class StoreServiceTest
     {
-        private readonly Mock<IStringClient> _stringClientMock;
+        private readonly Mock<ISlugGenerator> _slugGeneratorMock;
         private readonly Mock<IStoreRepository<StoreModel>> _storeRepositoryMock;
         private readonly Mock<IStoreUserRepository<StoreUserModel>> _storeUserRepositoryMock;
         private readonly StoreService _sut;
 
         public StoreServiceTest()
         {
-            _stringClientMock = new Mock<IStringClient>();
+            _slugGeneratorMock = new Mock<ISlugGenerator>();
             _storeRepositoryMock = new Mock<IStoreRepository<StoreModel>>();
             _storeUserRepositoryMock = new Mock<IStoreUserRepository<StoreUserModel>>();
             _sut = new StoreService(
-                _stringClientMock.Object,
+                _slugGeneratorMock.Object,
                 _storeRepositoryMock.Object,
                 _storeUserRepositoryMock.Object
             );
@@ -46,7 +46,7 @@ namespace Lofn.Tests.Domain.Services
             var store = new StoreInsertInfo { Name = "Minha Loja" };
             var createdModel = new StoreModel { StoreId = 10, Name = "Minha Loja", OwnerId = 1, Slug = "minha-loja" };
 
-            _stringClientMock.Setup(x => x.GenerateSlugAsync("Minha Loja")).ReturnsAsync("minha-loja");
+            _slugGeneratorMock.Setup(x => x.Generate("Minha Loja")).Returns("minha-loja");
             _storeRepositoryMock.Setup(x => x.ExistSlugAsync(0, "minha-loja")).ReturnsAsync(false);
             _storeRepositoryMock.Setup(x => x.InsertAsync(It.IsAny<StoreModel>())).ReturnsAsync(createdModel);
             _storeUserRepositoryMock.Setup(x => x.InsertAsync(It.IsAny<StoreUserModel>())).ReturnsAsync(new StoreUserModel());
@@ -91,7 +91,7 @@ namespace Lofn.Tests.Domain.Services
         {
             var store = new StoreUpdateInfo { StoreId = 1, Name = "Atualizada" };
             _storeRepositoryMock.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(new StoreModel { StoreId = 1, OwnerId = 1 });
-            _stringClientMock.Setup(x => x.GenerateSlugAsync("Atualizada")).ReturnsAsync("atualizada");
+            _slugGeneratorMock.Setup(x => x.Generate("Atualizada")).Returns("atualizada");
             _storeRepositoryMock.Setup(x => x.ExistSlugAsync(1, "atualizada")).ReturnsAsync(false);
             _storeRepositoryMock.Setup(x => x.UpdateAsync(It.IsAny<StoreModel>())).ReturnsAsync(new StoreModel { StoreId = 1, Name = "Atualizada", Slug = "atualizada" });
 

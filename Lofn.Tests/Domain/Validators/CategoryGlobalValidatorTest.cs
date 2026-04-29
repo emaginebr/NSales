@@ -43,6 +43,34 @@ namespace Lofn.Tests.Domain.Validators
             var result = _sut.TestValidate(new CategoryGlobalInsertInfo { Name = new string('a', 120) });
             result.ShouldNotHaveValidationErrorFor(x => x.Name);
         }
+
+        [Fact]
+        public void ShouldNotHaveError_WhenParentCategoryIdIsNull()
+        {
+            var result = _sut.TestValidate(new CategoryGlobalInsertInfo { Name = "X", ParentCategoryId = null });
+            result.ShouldNotHaveValidationErrorFor("ParentCategoryId.Value");
+        }
+
+        [Fact]
+        public void ShouldNotHaveError_WhenParentCategoryIdIsPositive()
+        {
+            var result = _sut.TestValidate(new CategoryGlobalInsertInfo { Name = "X", ParentCategoryId = 7 });
+            result.ShouldNotHaveValidationErrorFor("ParentCategoryId.Value");
+        }
+
+        [Fact]
+        public void ShouldHaveError_WhenParentCategoryIdIsZero()
+        {
+            var result = _sut.TestValidate(new CategoryGlobalInsertInfo { Name = "X", ParentCategoryId = 0 });
+            result.ShouldHaveValidationErrorFor("ParentCategoryId.Value");
+        }
+
+        [Fact]
+        public void ShouldHaveError_WhenParentCategoryIdIsNegative()
+        {
+            var result = _sut.TestValidate(new CategoryGlobalInsertInfo { Name = "X", ParentCategoryId = -3 });
+            result.ShouldHaveValidationErrorFor("ParentCategoryId.Value");
+        }
     }
 
     public class CategoryGlobalUpdateInfoValidatorTest
@@ -83,6 +111,34 @@ namespace Lofn.Tests.Domain.Validators
             var result = _sut.TestValidate(new CategoryGlobalUpdateInfo { CategoryId = 42, Name = "Periféricos" });
             result.ShouldNotHaveValidationErrorFor(x => x.CategoryId);
             result.ShouldNotHaveValidationErrorFor(x => x.Name);
+        }
+
+        [Fact]
+        public void ShouldNotHaveError_WhenParentCategoryIdIsNull()
+        {
+            var result = _sut.TestValidate(new CategoryGlobalUpdateInfo { CategoryId = 1, Name = "X", ParentCategoryId = null });
+            result.ShouldNotHaveValidationErrorFor("ParentCategoryId.Value");
+        }
+
+        [Fact]
+        public void ShouldNotHaveError_WhenParentCategoryIdIsPositive()
+        {
+            var result = _sut.TestValidate(new CategoryGlobalUpdateInfo { CategoryId = 1, Name = "X", ParentCategoryId = 9 });
+            result.ShouldNotHaveValidationErrorFor("ParentCategoryId.Value");
+        }
+
+        [Fact]
+        public void ShouldHaveError_WhenParentCategoryIdIsZero()
+        {
+            var result = _sut.TestValidate(new CategoryGlobalUpdateInfo { CategoryId = 1, Name = "X", ParentCategoryId = 0 });
+            result.ShouldHaveValidationErrorFor("ParentCategoryId.Value");
+        }
+
+        [Fact]
+        public void ShouldHaveError_WhenParentCategoryIdIsNegative()
+        {
+            var result = _sut.TestValidate(new CategoryGlobalUpdateInfo { CategoryId = 1, Name = "X", ParentCategoryId = -1 });
+            result.ShouldHaveValidationErrorFor("ParentCategoryId.Value");
         }
     }
 }

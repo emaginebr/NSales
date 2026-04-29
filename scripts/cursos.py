@@ -28,6 +28,8 @@ os.makedirs(PHOTOS_DIR, exist_ok=True)
 
 PRODUCT_TYPE_INFO = 2  # InfoProduct
 
+ROOT_CATEGORY = "Cursos"
+
 CATEGORIES = {
     "Programação": [
         {
@@ -352,12 +354,12 @@ CATEGORIES = {
     ],
     "Designer": [
         {
-            "name": "UI/UX Design com Figma",
+            "name": "UI e UX Design com Figma",
             "price": 347.00,
             "discount": 10,
             "featured": True,
             "description": (
-                "## UI/UX Design com Figma\n\n"
+                "## UI e UX Design com Figma\n\n"
                 "Curso completo de **UI/UX Design** usando **Figma** — da pesquisa com usuários "
                 "ao protótipo interativo de alta fidelidade.\n\n"
                 "### Conteúdo Programático\n\n"
@@ -504,16 +506,35 @@ def create_store(token):
     return slug
 
 
-def create_category(token, store_slug, name):
-    print(f"   Criando categoria '{name}'...")
-    resp = requests.post(
-        f"{LOFN_URL}/category/{store_slug}/insert",
-        json={"name": name},
-        headers={**COMMON_HEADERS, "Authorization": f"Bearer {token}"},
+def get_or_create_global_category(token, name, parent_id=None):
+    label = f"'{name}'" if parent_id is None else f"'{name}' (parent={parent_id})"
+    print(f"   Resolvendo categoria global {label}...")
+    auth_headers = {**COMMON_HEADERS, "Authorization": f"Bearer {token}"}
+
+    list_resp = requests.get(
+        f"{LOFN_URL}/category-global/list",
+        headers=auth_headers,
     )
-    resp.raise_for_status()
-    data = resp.json()
-    print(f"     -> categoryId={data['categoryId']}")
+    list_resp.raise_for_status()
+    for item in list_resp.json() or []:
+        same_name = (item.get("name") or "").strip().lower() == name.strip().lower()
+        same_parent = item.get("parentCategoryId") == parent_id
+        if same_name and same_parent:
+            print(f"     -> já existe: categoryId={item['categoryId']}")
+            return item["categoryId"]
+
+    payload = {"name": name}
+    if parent_id is not None:
+        payload["parentCategoryId"] = parent_id
+
+    create_resp = requests.post(
+        f"{LOFN_URL}/category-global/insert",
+        json=payload,
+        headers=auth_headers,
+    )
+    create_resp.raise_for_status()
+    data = create_resp.json()
+    print(f"     -> nova categoria global: categoryId={data['categoryId']}, slug={data.get('slug')}")
     return data["categoryId"]
 
 
@@ -605,9 +626,12 @@ def main():
     token = login()
     store_slug = create_store(token)
 
+    print(f"\n>> Categoria raiz: {ROOT_CATEGORY}")
+    root_category_id = get_or_create_global_category(token, ROOT_CATEGORY)
+
     for category_name, products in CATEGORIES.items():
-        print(f"\n>> Categoria: {category_name}")
-        category_id = create_category(token, store_slug, category_name)
+        print(f"\n>> Subcategoria: {ROOT_CATEGORY}/{category_name}")
+        category_id = get_or_create_global_category(token, category_name, parent_id=root_category_id)
 
         for product in products:
             product_id, product_slug = create_product(
@@ -619,7 +643,8 @@ def main():
 
     print("\n>> Seed completo!")
     print(f"   Store: {store_slug}")
-    print(f"   Categorias: {len(CATEGORIES)}")
+    print(f"   Categoria raiz: {ROOT_CATEGORY}")
+    print(f"   Subcategorias: {len(CATEGORIES)}")
     print(f"   Produtos: {sum(len(p) for p in CATEGORIES.values())}")
 
 

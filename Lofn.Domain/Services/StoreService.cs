@@ -1,9 +1,9 @@
 using Lofn.Infra.Interfaces.Repository;
+using Lofn.Domain.Core;
 using Lofn.Domain.Mappers;
 using Lofn.Domain.Models;
 using Lofn.Domain.Interfaces;
 using Lofn.DTO.Store;
-using zTools.ACL.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,17 +13,17 @@ namespace Lofn.Domain.Services
 {
     public class StoreService : IStoreService
     {
-        private readonly IStringClient _stringClient;
+        private readonly ISlugGenerator _slugGenerator;
         private readonly IStoreRepository<StoreModel> _storeRepository;
         private readonly IStoreUserRepository<StoreUserModel> _storeUserRepository;
 
         public StoreService(
-            IStringClient stringClient,
+            ISlugGenerator slugGenerator,
             IStoreRepository<StoreModel> storeRepository,
             IStoreUserRepository<StoreUserModel> storeUserRepository
         )
         {
-            _stringClient = stringClient;
+            _slugGenerator = slugGenerator;
             _storeRepository = storeRepository;
             _storeUserRepository = storeUserRepository;
         }
@@ -58,11 +58,12 @@ namespace Lofn.Domain.Services
 
         private async Task<string> GenerateSlugAsync(long storeId, string name)
         {
+            var baseSlug = _slugGenerator.Generate(name);
             string newSlug;
             int c = 0;
             do
             {
-                newSlug = await _stringClient.GenerateSlugAsync(name);
+                newSlug = baseSlug;
                 if (c > 0)
                 {
                     newSlug += c.ToString();

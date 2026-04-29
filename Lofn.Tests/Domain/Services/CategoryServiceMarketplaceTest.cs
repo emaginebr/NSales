@@ -1,5 +1,6 @@
 using FluentValidation;
 using FluentValidation.Results;
+using Lofn.Domain.Core;
 using Lofn.Domain.Models;
 using Lofn.Domain.Services;
 using Lofn.DTO.Category;
@@ -8,21 +9,28 @@ using Moq;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
-using zTools.ACL.Interfaces;
 
 namespace Lofn.Tests.Domain.Services
 {
     public class CategoryServiceMarketplaceTest
     {
-        private readonly Mock<IStringClient> _stringClientMock = new();
+        private readonly Mock<ISlugGenerator> _slugGeneratorMock = new();
         private readonly Mock<ICategoryRepository<CategoryModel>> _categoryRepositoryMock = new();
         private readonly Mock<IStoreRepository<StoreModel>> _storeRepositoryMock = new();
+        private readonly Mock<IValidator<CategoryInsertInfo>> _insertValidatorMock = new();
+        private readonly Mock<IValidator<CategoryUpdateInfo>> _updateValidatorMock = new();
         private readonly Mock<IValidator<CategoryGlobalInsertInfo>> _globalInsertValidatorMock = new();
         private readonly Mock<IValidator<CategoryGlobalUpdateInfo>> _globalUpdateValidatorMock = new();
         private readonly CategoryService _sut;
 
         public CategoryServiceMarketplaceTest()
         {
+            _insertValidatorMock
+                .Setup(x => x.ValidateAsync(It.IsAny<ValidationContext<CategoryInsertInfo>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ValidationResult());
+            _updateValidatorMock
+                .Setup(x => x.ValidateAsync(It.IsAny<ValidationContext<CategoryUpdateInfo>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ValidationResult());
             _globalInsertValidatorMock
                 .Setup(x => x.ValidateAsync(It.IsAny<ValidationContext<CategoryGlobalInsertInfo>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ValidationResult());
@@ -31,9 +39,11 @@ namespace Lofn.Tests.Domain.Services
                 .ReturnsAsync(new ValidationResult());
 
             _sut = new CategoryService(
-                _stringClientMock.Object,
+                _slugGeneratorMock.Object,
                 _categoryRepositoryMock.Object,
                 _storeRepositoryMock.Object,
+                _insertValidatorMock.Object,
+                _updateValidatorMock.Object,
                 _globalInsertValidatorMock.Object,
                 _globalUpdateValidatorMock.Object
             );
@@ -43,7 +53,7 @@ namespace Lofn.Tests.Domain.Services
         public async Task InsertGlobalAsync_ShouldCreateCategoryWithStoreIdNull()
         {
             var info = new CategoryGlobalInsertInfo { Name = "Periféricos" };
-            _stringClientMock.Setup(x => x.GenerateSlugAsync("Periféricos")).ReturnsAsync("perifericos");
+            _slugGeneratorMock.Setup(x => x.Generate("Periféricos")).Returns("perifericos");
             _categoryRepositoryMock.Setup(x => x.ExistSlugInTenantAsync(null, "perifericos")).ReturnsAsync(false);
             _categoryRepositoryMock.Setup(x => x.InsertAsync(It.IsAny<CategoryModel>()))
                 .ReturnsAsync((CategoryModel m) =>
@@ -65,16 +75,16 @@ namespace Lofn.Tests.Domain.Services
         public async Task InsertGlobalAsync_ShouldAutoSuffix_WhenSlugConflicts()
         {
             var info = new CategoryGlobalInsertInfo { Name = "Cat" };
-            _stringClientMock.Setup(x => x.GenerateSlugAsync("Cat")).ReturnsAsync("cat");
+            _slugGeneratorMock.Setup(x => x.Generate("Cat")).Returns("cat");
             _categoryRepositoryMock.SetupSequence(x => x.ExistSlugInTenantAsync(null, It.IsAny<string>()))
-                .ReturnsAsync(true)   // "cat" taken
-                .ReturnsAsync(false); // "cat1" free
+                .ReturnsAsync(true)    // "cat" taken
+                .ReturnsAsync(false);  // "cat-1" free (kebab-case suffix)
             _categoryRepositoryMock.Setup(x => x.InsertAsync(It.IsAny<CategoryModel>()))
                 .ReturnsAsync((CategoryModel m) => m);
 
             var result = await _sut.InsertGlobalAsync(info);
 
-            Assert.Equal("cat1", result.Slug);
+            Assert.Equal("cat-1", result.Slug);
         }
 
         [Fact]
@@ -104,8 +114,8 @@ namespace Lofn.Tests.Domain.Services
             var info = new CategoryGlobalUpdateInfo { CategoryId = 5, Name = "Periféricos & Acessórios" };
             _categoryRepositoryMock.Setup(x => x.GetByIdAsync(5))
                 .ReturnsAsync(new CategoryModel { CategoryId = 5, StoreId = null, Name = "Old", Slug = "old" });
-            _stringClientMock.Setup(x => x.GenerateSlugAsync("Periféricos & Acessórios"))
-                .ReturnsAsync("perifericos-acessorios");
+            _slugGeneratorMock.Setup(x => x.Generate("Periféricos & Acessórios"))
+                .Returns("perifericos-acessorios");
             _categoryRepositoryMock.Setup(x => x.ExistSlugInTenantAsync(5, "perifericos-acessorios"))
                 .ReturnsAsync(false);
             _categoryRepositoryMock.Setup(x => x.UpdateAsync(It.IsAny<CategoryModel>()))

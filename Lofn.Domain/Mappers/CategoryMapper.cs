@@ -13,7 +13,8 @@ namespace Lofn.Domain.Mappers
                 Slug = md.Slug,
                 Name = md.Name,
                 StoreId = md.StoreId,
-                IsGlobal = md.StoreId == null
+                IsGlobal = md.StoreId == null,
+                ParentCategoryId = md.ParentId
             };
         }
 
@@ -23,7 +24,8 @@ namespace Lofn.Domain.Mappers
             {
                 CategoryId = dto.CategoryId,
                 Name = dto.Name,
-                StoreId = dto.StoreId
+                StoreId = dto.StoreId,
+                ParentId = dto.ParentCategoryId
             };
         }
     }

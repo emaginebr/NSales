@@ -8,5 +8,7 @@ namespace Lofn.DTO.Category
         public long CategoryId { get; set; }
         [JsonPropertyName("name")]
         public string Name { get; set; }
+        [JsonPropertyName("parentCategoryId")]
+        public long? ParentCategoryId { get; set; }
     }
 }

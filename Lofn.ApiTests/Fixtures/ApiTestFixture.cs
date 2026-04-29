@@ -19,6 +19,9 @@ namespace Lofn.ApiTests.Fixtures
         private string? _cachedStoreSlug;
         private readonly SemaphoreSlim _storeSlugLock = new(1, 1);
 
+        private long? _cachedCategoryId;
+        private readonly SemaphoreSlim _categoryIdLock = new(1, 1);
+
         public async Task InitializeAsync()
         {
             FlurlHttp.Clients.WithDefaults(builder =>
@@ -135,6 +138,200 @@ namespace Lofn.ApiTests.Fixtures
             {
                 _storeSlugLock.Release();
             }
+        }
+
+        public async Task<long> GetTestCategoryIdAsync()
+        {
+            if (_cachedCategoryId is not null) return _cachedCategoryId.Value;
+
+            await _categoryIdLock.WaitAsync();
+            try
+            {
+                if (_cachedCategoryId is not null) return _cachedCategoryId.Value;
+
+                _cachedCategoryId = IsMarketplaceTenant
+                    ? await GetOrCreateGlobalCategoryAsync()
+                    : await GetOrCreateStoreScopedCategoryAsync();
+                return _cachedCategoryId.Value;
+            }
+            finally
+            {
+                _categoryIdLock.Release();
+            }
+        }
+
+        private async Task<long> GetOrCreateGlobalCategoryAsync()
+        {
+            var listBody = await CreateAuthenticatedRequest("category-global/list")
+                .AllowAnyHttpStatus()
+                .GetAsync()
+                .ReceiveString();
+            var existing = ExtractFirstCategoryId(listBody);
+            if (existing.HasValue) return existing.Value;
+
+            var insertBody = await CreateAuthenticatedRequest("category-global/insert")
+                .AllowAnyHttpStatus()
+                .PostJsonAsync(new { name = $"Test Global Category {Guid.NewGuid():N}" })
+                .ReceiveString();
+            var created = ExtractCategoryIdFromObject(insertBody)
+                ?? throw new Exception($"Failed to create a global category. Response: {Truncate(insertBody, 500)}");
+            return created;
+        }
+
+        /// <summary>
+        /// Seeds a parent + child pair through whichever surface is currently open
+        /// (store-scoped if non-marketplace, global if marketplace) and returns
+        /// (parentId, childId). Mirrors <c>SeedCategoryThroughOpenPathAsync</c> from
+        /// <c>CategoryMutualExclusionTests</c> but creates two nested levels.
+        /// </summary>
+        public async Task<(long parentId, long childId)> SeedParentChildPairAsync(string storeSlug)
+        {
+            // Try store-scoped first; fall back to global (the closed surface returns 4xx and we ignore the body)
+            var parentId = await TrySeedRootAsync(storeSlug);
+            var childId = await TrySeedChildAsync(storeSlug, parentId);
+            return (parentId, childId);
+        }
+
+        private async Task<long> TrySeedRootAsync(string storeSlug)
+        {
+            var storeBody = await CreateAuthenticatedRequest("category")
+                .AppendPathSegment(storeSlug)
+                .AppendPathSegment("insert")
+                .AllowAnyHttpStatus()
+                .PostJsonAsync(new { name = $"ParentRoot {Guid.NewGuid():N}" })
+                .ReceiveString();
+
+            if (TryReadCategoryId(storeBody, out var storeId)) return storeId;
+
+            var globalBody = await CreateAuthenticatedRequest("category-global/insert")
+                .AllowAnyHttpStatus()
+                .PostJsonAsync(new { name = $"ParentRoot {Guid.NewGuid():N}" })
+                .ReceiveString();
+
+            if (TryReadCategoryId(globalBody, out var globalId)) return globalId;
+
+            throw new InvalidOperationException(
+                "SeedParentChildPairAsync could not seed a parent through either surface. " +
+                $"store={Truncate(storeBody, 200)} global={Truncate(globalBody, 200)}");
+        }
+
+        private async Task<long> TrySeedChildAsync(string storeSlug, long parentId)
+        {
+            var storeBody = await CreateAuthenticatedRequest("category")
+                .AppendPathSegment(storeSlug)
+                .AppendPathSegment("insert")
+                .AllowAnyHttpStatus()
+                .PostJsonAsync(new { name = $"Child {Guid.NewGuid():N}", parentCategoryId = parentId })
+                .ReceiveString();
+
+            if (TryReadCategoryId(storeBody, out var storeId)) return storeId;
+
+            var globalBody = await CreateAuthenticatedRequest("category-global/insert")
+                .AllowAnyHttpStatus()
+                .PostJsonAsync(new { name = $"Child {Guid.NewGuid():N}", parentCategoryId = parentId })
+                .ReceiveString();
+
+            if (TryReadCategoryId(globalBody, out var globalId)) return globalId;
+
+            throw new InvalidOperationException(
+                "SeedParentChildPairAsync could not seed a child through either surface. " +
+                $"store={Truncate(storeBody, 200)} global={Truncate(globalBody, 200)}");
+        }
+
+        private static bool TryReadCategoryId(string body, out long categoryId)
+        {
+            categoryId = 0;
+            if (string.IsNullOrWhiteSpace(body)) return false;
+            try
+            {
+                using var doc = JsonDocument.Parse(body);
+                if (doc.RootElement.ValueKind != JsonValueKind.Object) return false;
+                if (doc.RootElement.TryGetProperty("categoryId", out var prop)
+                    && prop.TryGetInt64(out var value))
+                {
+                    categoryId = value;
+                    return true;
+                }
+                return false;
+            }
+            catch (JsonException)
+            {
+                return false;
+            }
+        }
+
+        private async Task<long> GetOrCreateStoreScopedCategoryAsync()
+        {
+            var storeSlug = await GetTestStoreSlugAsync();
+
+            const string query = "{ myCategories(skip: 0, take: 1) { items { categoryId storeId } } }";
+            var graphBody = await CreateAuthenticatedRequest("graphql/admin")
+                .AllowAnyHttpStatus()
+                .PostJsonAsync(new { query })
+                .ReceiveString();
+            var existing = ExtractCategoryIdFromAdminQuery(graphBody);
+            if (existing.HasValue) return existing.Value;
+
+            var insertBody = await CreateAuthenticatedRequest("category")
+                .AppendPathSegment(storeSlug)
+                .AppendPathSegment("insert")
+                .AllowAnyHttpStatus()
+                .PostJsonAsync(new { name = $"Test Category {Guid.NewGuid():N}" })
+                .ReceiveString();
+            var created = ExtractCategoryIdFromObject(insertBody)
+                ?? throw new Exception($"Failed to create a store-scoped category for store '{storeSlug}'. Response: {Truncate(insertBody, 500)}");
+            return created;
+        }
+
+        private static long? ExtractFirstCategoryId(string json)
+        {
+            if (string.IsNullOrWhiteSpace(json)) return null;
+            try
+            {
+                using var doc = JsonDocument.Parse(json);
+                if (doc.RootElement.ValueKind != JsonValueKind.Array) return null;
+                foreach (var item in doc.RootElement.EnumerateArray())
+                {
+                    if (item.TryGetProperty("categoryId", out var prop) && prop.TryGetInt64(out var value))
+                        return value;
+                }
+                return null;
+            }
+            catch (JsonException) { return null; }
+        }
+
+        private static long? ExtractCategoryIdFromObject(string json)
+        {
+            if (string.IsNullOrWhiteSpace(json)) return null;
+            try
+            {
+                using var doc = JsonDocument.Parse(json);
+                if (doc.RootElement.ValueKind != JsonValueKind.Object) return null;
+                if (doc.RootElement.TryGetProperty("categoryId", out var prop) && prop.TryGetInt64(out var value))
+                    return value;
+                return null;
+            }
+            catch (JsonException) { return null; }
+        }
+
+        private static long? ExtractCategoryIdFromAdminQuery(string json)
+        {
+            if (string.IsNullOrWhiteSpace(json)) return null;
+            try
+            {
+                using var doc = JsonDocument.Parse(json);
+                if (!doc.RootElement.TryGetProperty("data", out var data)) return null;
+                if (!data.TryGetProperty("myCategories", out var myCategories)) return null;
+                if (!myCategories.TryGetProperty("items", out var items)
+                    || items.ValueKind != JsonValueKind.Array) return null;
+                foreach (var item in items.EnumerateArray())
+                {
+                    if (item.TryGetProperty("categoryId", out var prop) && prop.TryGetInt64(out var value))
+                        return value;
+                }
+                return null;
+            }
+            catch (JsonException) { return null; }
         }
 
         public IFlurlRequest CreateAuthenticatedRequest(string path) =>

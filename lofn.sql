@@ -24,11 +24,13 @@ CREATE TABLE lofn_store_users (
 
 CREATE TABLE lofn_categories (
     category_id BIGSERIAL NOT NULL,
-    slug VARCHAR(120) NOT NULL,
+    slug VARCHAR(512) NOT NULL,
     name VARCHAR(120) NOT NULL,
     store_id BIGINT,
+    parent_id BIGINT,
     CONSTRAINT lofn_categories_pkey PRIMARY KEY (category_id),
-    CONSTRAINT fk_lofn_category_store FOREIGN KEY (store_id) REFERENCES lofn_stores (store_id)
+    CONSTRAINT fk_lofn_category_store FOREIGN KEY (store_id) REFERENCES lofn_stores (store_id),
+    CONSTRAINT fk_lofn_category_parent FOREIGN KEY (parent_id) REFERENCES lofn_categories (category_id) ON DELETE RESTRICT
 );
 
 -- Tenant-global category slug uniqueness (FR-015 / 001-marketplace-categories).
@@ -37,6 +39,17 @@ CREATE TABLE lofn_categories (
 CREATE UNIQUE INDEX ix_lofn_categories_slug_global
     ON lofn_categories (slug)
     WHERE store_id IS NULL;
+
+-- Sibling-name uniqueness (002-category-subcategories / FR-009).
+-- Composite expression index that treats NULL parent_id and NULL store_id as
+-- sentinel zeros so that two stores can each have a root with the same name,
+-- but a single store cannot have two siblings sharing a name (case-insensitive).
+CREATE UNIQUE INDEX ix_lofn_categories_sibling_name_unique
+    ON lofn_categories ((COALESCE(parent_id, 0)), (COALESCE(store_id, 0)), lower(name));
+
+-- Helper index for cascade descendant walks (parent_id is queried frequently).
+CREATE INDEX ix_lofn_categories_parent_id
+    ON lofn_categories (parent_id) WHERE parent_id IS NOT NULL;
 
 CREATE TABLE lofn_products (
     product_id BIGSERIAL NOT NULL,

@@ -1,4 +1,5 @@
 using Lofn.Infra.Interfaces.Repository;
+using Lofn.Domain.Core;
 using Lofn.Domain.Mappers;
 using Lofn.Domain.Models;
 using Lofn.Domain.Interfaces;
@@ -18,7 +19,7 @@ namespace Lofn.Domain.Services
     {
         private readonly ITenantResolver _tenantResolver;
         private readonly IFileClient _fileClient;
-        private readonly IStringClient _stringClient;
+        private readonly ISlugGenerator _slugGenerator;
         private readonly IProductRepository<ProductModel> _productRepository;
         private readonly IProductImageService _productImageService;
         private readonly IStoreUserRepository<StoreUserModel> _storeUserRepository;
@@ -28,7 +29,7 @@ namespace Lofn.Domain.Services
         public ProductService(
             ITenantResolver tenantResolver,
             IFileClient fileClient,
-            IStringClient stringClient,
+            ISlugGenerator slugGenerator,
             IProductRepository<ProductModel> productRepository,
             IProductImageService productImageService,
             IStoreUserRepository<StoreUserModel> storeUserRepository,
@@ -38,7 +39,7 @@ namespace Lofn.Domain.Services
         {
             _tenantResolver = tenantResolver;
             _fileClient = fileClient;
-            _stringClient = stringClient;
+            _slugGenerator = slugGenerator;
             _productRepository = productRepository;
             _productImageService = productImageService;
             _storeUserRepository = storeUserRepository;
@@ -112,11 +113,12 @@ namespace Lofn.Domain.Services
 
         private async Task<string> GenerateSlugAsync(long storeId, long productId, string name)
         {
+            var baseSlug = _slugGenerator.Generate(name);
             string newSlug;
             int c = 0;
             do
             {
-                newSlug = await _stringClient.GenerateSlugAsync(name);
+                newSlug = baseSlug;
                 if (c > 0)
                 {
                     newSlug += c.ToString();

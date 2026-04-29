@@ -7,17 +7,34 @@ namespace Lofn.ApiTests.Helpers
 {
     public static class TestDataHelper
     {
-        public static CategoryInsertInfo CreateCategoryInsertInfo(string? name = null) =>
+        public static CategoryInsertInfo CreateCategoryInsertInfo(string? name = null, long? parentCategoryId = null) =>
             new CategoryInsertInfo
             {
-                Name = name ?? $"Test Category {Guid.NewGuid():N}"
+                Name = name ?? $"Test Category {Guid.NewGuid():N}",
+                ParentCategoryId = parentCategoryId
             };
 
-        public static CategoryUpdateInfo CreateCategoryUpdateInfo(long categoryId = 1, string? name = null) =>
+        public static CategoryUpdateInfo CreateCategoryUpdateInfo(long categoryId = 1, string? name = null, long? parentCategoryId = null) =>
             new CategoryUpdateInfo
             {
                 CategoryId = categoryId,
-                Name = name ?? $"Updated Category {Guid.NewGuid():N}"
+                Name = name ?? $"Updated Category {Guid.NewGuid():N}",
+                ParentCategoryId = parentCategoryId
+            };
+
+        public static CategoryGlobalInsertInfo CreateCategoryGlobalInsertInfo(string? name = null, long? parentCategoryId = null) =>
+            new CategoryGlobalInsertInfo
+            {
+                Name = name ?? $"Test Global Category {Guid.NewGuid():N}",
+                ParentCategoryId = parentCategoryId
+            };
+
+        public static CategoryGlobalUpdateInfo CreateCategoryGlobalUpdateInfo(long categoryId = 1, string? name = null, long? parentCategoryId = null) =>
+            new CategoryGlobalUpdateInfo
+            {
+                CategoryId = categoryId,
+                Name = name ?? $"Updated Global Category {Guid.NewGuid():N}",
+                ParentCategoryId = parentCategoryId
             };
 
         public static ProductInsertInfo CreateProductInsertInfo(string? name = null) =>

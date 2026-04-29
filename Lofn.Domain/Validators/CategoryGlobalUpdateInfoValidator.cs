@@ -12,6 +12,12 @@ namespace Lofn.Domain.Validators
             RuleFor(x => x.Name)
                 .NotEmpty().WithMessage("Name is required")
                 .MaximumLength(120).WithMessage("Name must be at most 120 characters");
+
+            When(x => x.ParentCategoryId.HasValue, () =>
+            {
+                RuleFor(x => x.ParentCategoryId.Value)
+                    .GreaterThan(0).WithMessage("ParentCategoryId must be greater than 0 when provided");
+            });
         }
     }
 }

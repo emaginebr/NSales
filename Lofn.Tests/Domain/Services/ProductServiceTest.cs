@@ -1,5 +1,6 @@
 using Xunit;
 using Moq;
+using Lofn.Domain.Core;
 using Lofn.Domain.Services;
 using Lofn.Domain.Models;
 using Lofn.Domain.Interfaces;
@@ -16,7 +17,7 @@ namespace Lofn.Tests.Domain.Services
     {
         private readonly Mock<ITenantResolver> _tenantResolverMock;
         private readonly Mock<IFileClient> _fileClientMock;
-        private readonly Mock<IStringClient> _stringClientMock;
+        private readonly Mock<ISlugGenerator> _slugGeneratorMock;
         private readonly Mock<IProductRepository<ProductModel>> _productRepositoryMock;
         private readonly Mock<IProductImageService> _productImageServiceMock;
         private readonly Mock<IStoreUserRepository<StoreUserModel>> _storeUserRepositoryMock;
@@ -28,7 +29,7 @@ namespace Lofn.Tests.Domain.Services
         {
             _tenantResolverMock = new Mock<ITenantResolver>();
             _fileClientMock = new Mock<IFileClient>();
-            _stringClientMock = new Mock<IStringClient>();
+            _slugGeneratorMock = new Mock<ISlugGenerator>();
             _productRepositoryMock = new Mock<IProductRepository<ProductModel>>();
             _productImageServiceMock = new Mock<IProductImageService>();
             _storeUserRepositoryMock = new Mock<IStoreUserRepository<StoreUserModel>>();
@@ -37,7 +38,7 @@ namespace Lofn.Tests.Domain.Services
             _sut = new ProductService(
                 _tenantResolverMock.Object,
                 _fileClientMock.Object,
-                _stringClientMock.Object,
+                _slugGeneratorMock.Object,
                 _productRepositoryMock.Object,
                 _productImageServiceMock.Object,
                 _storeUserRepositoryMock.Object,
@@ -78,7 +79,7 @@ namespace Lofn.Tests.Domain.Services
         {
             var product = new ProductInsertInfo { Name = "Produto", Price = 99.90, Description = "Desc" };
             _storeUserRepositoryMock.Setup(x => x.ExistsAsync(1, 1)).ReturnsAsync(true);
-            _stringClientMock.Setup(x => x.GenerateSlugAsync("Produto")).ReturnsAsync("produto");
+            _slugGeneratorMock.Setup(x => x.Generate("Produto")).Returns("produto");
             _productRepositoryMock.Setup(x => x.ExistSlugAsync(1, 0, "produto")).ReturnsAsync(false);
             _productRepositoryMock.Setup(x => x.InsertAsync(It.IsAny<ProductModel>()))
                 .ReturnsAsync(new ProductModel { ProductId = 1, Name = "Produto", StoreId = 1, Slug = "produto", Price = 99.90 });

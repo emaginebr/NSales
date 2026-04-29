@@ -124,12 +124,17 @@ namespace Lofn.ApiTests.Controllers
             images.Should().NotContain(i => i.ImageId == uploaded.ImageId);
         }
 
-        private async Task<ProductInfo?> CreateProductAsync(string storeSlug) =>
-            await _fixture.CreateAuthenticatedRequest("product")
+        private async Task<ProductInfo?> CreateProductAsync(string storeSlug)
+        {
+            var payload = TestDataHelper.CreateProductInsertInfo();
+            payload.CategoryId = await _fixture.GetTestCategoryIdAsync();
+
+            return await _fixture.CreateAuthenticatedRequest("product")
                 .AppendPathSegment(storeSlug)
                 .AppendPathSegment("insert")
-                .PostJsonAsync(TestDataHelper.CreateProductInsertInfo())
+                .PostJsonAsync(payload)
                 .ReceiveJson<ProductInfo>();
+        }
 
         private async Task<ProductImageInfo?> UploadImageAsync(long productId, int sortOrder = 0)
         {

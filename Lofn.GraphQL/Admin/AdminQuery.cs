@@ -1,9 +1,12 @@
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Authorization;
 using HotChocolate.Data;
 using HotChocolate.Types;
 using Lofn.Domain.Interfaces;
+using Lofn.DTO.Category;
 using Lofn.Infra.Context;
 using Microsoft.AspNetCore.Http;
 using NAuth.ACL.Interfaces;
@@ -65,4 +68,23 @@ public class AdminQuery
         return context.Categories.Where(c => c.StoreId.HasValue && storeIds.Contains(c.StoreId.Value));
     }
 
+    public async Task<IList<CategoryTreeNodeInfo>> GetMyCategoryTree(
+        LofnContext context,
+        IHttpContextAccessor httpContextAccessor,
+        [Service] IUserClient userClient,
+        [Service] ITenantResolver tenantResolver,
+        [Service] ICategoryService categoryService)
+    {
+        if (tenantResolver.Marketplace)
+            return await categoryService.GetTreeAsync(null);
+
+        var storeIds = GetUserStoreIds(context, httpContextAccessor, userClient).ToList();
+        var aggregated = new List<CategoryTreeNodeInfo>();
+        foreach (var storeId in storeIds)
+        {
+            var subtree = await categoryService.GetTreeAsync(storeId);
+            aggregated.AddRange(subtree);
+        }
+        return aggregated;
+    }
 }

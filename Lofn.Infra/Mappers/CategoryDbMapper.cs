@@ -12,7 +12,8 @@ namespace Lofn.Infra.Mappers
                 CategoryId = row.CategoryId,
                 Slug = row.Slug,
                 Name = row.Name,
-                StoreId = row.StoreId
+                StoreId = row.StoreId,
+                ParentId = row.ParentId
             };
         }
 
@@ -22,6 +23,7 @@ namespace Lofn.Infra.Mappers
             row.Slug = md.Slug;
             row.Name = md.Name;
             row.StoreId = md.StoreId;
+            row.ParentId = md.ParentId;
         }
     }
 }

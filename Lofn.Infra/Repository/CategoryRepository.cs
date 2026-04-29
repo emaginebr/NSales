@@ -130,5 +130,78 @@ namespace Lofn.Infra.Repository
                 return null;
             return CategoryDbMapper.ToModel(row);
         }
+
+        public async Task<IList<CategoryModel>> GetAncestorChainAsync(long categoryId)
+        {
+            var chain = new List<CategoryModel>();
+            var current = await _context.Categories.FindAsync(categoryId);
+            if (current == null) return chain;
+
+            chain.Add(CategoryDbMapper.ToModel(current));
+
+            // Bounded by FR-004 max depth (5). Defensive cap of 32 to avoid infinite loop on corrupted data.
+            for (var i = 0; i < 32; i++)
+            {
+                if (current.ParentId == null) break;
+                var parent = await _context.Categories.FindAsync(current.ParentId.Value);
+                if (parent == null) break;
+                chain.Add(CategoryDbMapper.ToModel(parent));
+                current = parent;
+            }
+            return chain;
+        }
+
+        public async Task<bool> ExistSiblingNameAsync(long? parentId, long? storeId, string name, long? excludeCategoryId)
+        {
+            var lowered = (name ?? string.Empty).ToLowerInvariant();
+            return await _context.Categories
+                .Where(x => x.ParentId == parentId
+                    && x.StoreId == storeId
+                    && x.Name.ToLower() == lowered
+                    && (excludeCategoryId == null || x.CategoryId != excludeCategoryId.Value))
+                .AnyAsync();
+        }
+
+        public async Task<bool> HasChildrenAsync(long categoryId)
+        {
+            return await _context.Categories.AnyAsync(c => c.ParentId == categoryId);
+        }
+
+        public async Task<IList<CategoryModel>> ListByScopeAsync(long? storeId)
+        {
+            var rows = await _context.Categories
+                .Where(x => x.StoreId == storeId)
+                .ToListAsync();
+            return rows.Select(CategoryDbMapper.ToModel).ToList();
+        }
+
+        public async Task<IList<CategoryModel>> GetDescendantsAsync(long categoryId)
+        {
+            var descendants = new List<CategoryModel>();
+            var frontier = new List<long> { categoryId };
+
+            // Bounded BFS — depth 5 means at most 4 hops down from the starting node.
+            for (var i = 0; i < 32 && frontier.Count > 0; i++)
+            {
+                var nextLevel = await _context.Categories
+                    .Where(x => x.ParentId.HasValue && frontier.Contains(x.ParentId.Value))
+                    .ToListAsync();
+                if (nextLevel.Count == 0) break;
+                descendants.AddRange(nextLevel.Select(CategoryDbMapper.ToModel));
+                frontier = nextLevel.Select(x => x.CategoryId).ToList();
+            }
+            return descendants;
+        }
+
+        public async Task UpdateManyAsync(IEnumerable<CategoryModel> models)
+        {
+            foreach (var model in models)
+            {
+                var row = await _context.Categories.FindAsync(model.CategoryId);
+                if (row == null) continue;
+                CategoryDbMapper.ToEntity(model, row);
+            }
+            await _context.SaveChangesAsync();
+        }
     }
 }

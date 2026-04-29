@@ -14,6 +14,8 @@ namespace Lofn.DTO.Category
         public long? StoreId { get; set; }
         [JsonPropertyName("isGlobal")]
         public bool IsGlobal { get; set; }
+        [JsonPropertyName("parentCategoryId")]
+        public long? ParentCategoryId { get; set; }
         [JsonPropertyName("productCount")]
         public int ProductCount { get; set; }
     }

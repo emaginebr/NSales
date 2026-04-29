@@ -13,7 +13,13 @@ public partial class Category
 
     public long? StoreId { get; set; }
 
+    public long? ParentId { get; set; }
+
     public virtual Store Store { get; set; }
+
+    public virtual Category Parent { get; set; }
+
+    public virtual ICollection<Category> Children { get; set; } = new List<Category>();
 
     public virtual ICollection<Product> Products { get; set; } = new List<Product>();
 }

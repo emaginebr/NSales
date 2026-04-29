@@ -18,5 +18,13 @@ namespace Lofn.Infra.Interfaces.Repository
         Task<IDictionary<long, int>> CountProductsByCategoryAsync();
         Task<IDictionary<long, int>> CountActiveProductsByStoreAsync(long storeId);
         Task<TModel> GetBySlugAndStoreAsync(long storeId, string slug);
+
+        // 002-category-subcategories
+        Task<IList<TModel>> GetAncestorChainAsync(long categoryId);
+        Task<bool> ExistSiblingNameAsync(long? parentId, long? storeId, string name, long? excludeCategoryId);
+        Task<bool> HasChildrenAsync(long categoryId);
+        Task<IList<TModel>> ListByScopeAsync(long? storeId);
+        Task<IList<TModel>> GetDescendantsAsync(long categoryId);
+        Task UpdateManyAsync(IEnumerable<TModel> models);
     }
 }

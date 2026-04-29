@@ -21,5 +21,8 @@ namespace Lofn.Domain.Interfaces
         Task<CategoryInfo> UpdateGlobalAsync(CategoryGlobalUpdateInfo category);
         Task DeleteGlobalAsync(long categoryId);
         Task<IList<CategoryInfo>> ListGlobalAsync();
+
+        // 002-category-subcategories
+        Task<IList<CategoryTreeNodeInfo>> GetTreeAsync(long? storeId);
     }
 }

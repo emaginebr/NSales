@@ -99,7 +99,9 @@ namespace Lofn.ApiTests.Controllers
         public async Task Insert_WithValidPayload_ShouldReturnCreatedProductWithId()
         {
             var storeSlug = await _fixture.GetTestStoreSlugAsync();
+            var categoryId = await _fixture.GetTestCategoryIdAsync();
             var payload = TestDataHelper.CreateProductInsertInfo();
+            payload.CategoryId = categoryId;
 
             var created = await InsertProductAsync(storeSlug, payload);
 
@@ -110,15 +112,21 @@ namespace Lofn.ApiTests.Controllers
             created.Price.Should().Be(payload.Price);
             created.Status.Should().Be(payload.Status);
             created.ProductType.Should().Be(payload.ProductType);
+            created.CategoryId.Should().Be(categoryId);
         }
 
         [Fact]
         public async Task Update_AfterInsert_ShouldReflectChanges()
         {
             var storeSlug = await _fixture.GetTestStoreSlugAsync();
-            var inserted = await InsertProductAsync(storeSlug, TestDataHelper.CreateProductInsertInfo());
+            var categoryId = await _fixture.GetTestCategoryIdAsync();
+
+            var insertPayload = TestDataHelper.CreateProductInsertInfo();
+            insertPayload.CategoryId = categoryId;
+            var inserted = await InsertProductAsync(storeSlug, insertPayload);
 
             var updatePayload = TestDataHelper.CreateProductUpdateInfo(inserted!.ProductId);
+            updatePayload.CategoryId = categoryId;
             updatePayload.Price = 199.90;
             updatePayload.Discount = 15;
 
@@ -133,15 +141,21 @@ namespace Lofn.ApiTests.Controllers
             updated.Name.Should().Be(updatePayload.Name);
             updated.Price.Should().Be(updatePayload.Price);
             updated.Discount.Should().Be(updatePayload.Discount);
+            updated.CategoryId.Should().Be(categoryId);
         }
 
         [Fact]
         public async Task Update_WithInactiveStatus_ShouldSoftDeleteProduct()
         {
             var storeSlug = await _fixture.GetTestStoreSlugAsync();
-            var inserted = await InsertProductAsync(storeSlug, TestDataHelper.CreateProductInsertInfo());
+            var categoryId = await _fixture.GetTestCategoryIdAsync();
+
+            var insertPayload = TestDataHelper.CreateProductInsertInfo();
+            insertPayload.CategoryId = categoryId;
+            var inserted = await InsertProductAsync(storeSlug, insertPayload);
 
             var deletePayload = TestDataHelper.CreateProductUpdateInfo(inserted!.ProductId, inserted.Name);
+            deletePayload.CategoryId = categoryId;
             deletePayload.Price = inserted.Price;
             deletePayload.Status = ProductStatusEnum.Inactive;
 
@@ -183,8 +197,9 @@ namespace Lofn.ApiTests.Controllers
             if (_fixture.IsMarketplaceTenant) return;
 
             var storeSlug = await _fixture.GetTestStoreSlugAsync();
+            var categoryId = await _fixture.GetTestCategoryIdAsync();
             var payload = TestDataHelper.CreateProductInsertInfo();
-            payload.CategoryId = null;
+            payload.CategoryId = categoryId;
 
             var response = await _fixture.CreateAuthenticatedRequest("product")
                 .AppendPathSegment(storeSlug)

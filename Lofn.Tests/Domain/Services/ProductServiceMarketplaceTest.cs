@@ -1,4 +1,5 @@
 using FluentValidation;
+using Lofn.Domain.Core;
 using Lofn.Domain.Interfaces;
 using Lofn.Domain.Models;
 using Lofn.Domain.Services;
@@ -15,7 +16,7 @@ namespace Lofn.Tests.Domain.Services
     {
         private readonly Mock<ITenantResolver> _tenantResolverMock = new();
         private readonly Mock<IFileClient> _fileClientMock = new();
-        private readonly Mock<IStringClient> _stringClientMock = new();
+        private readonly Mock<ISlugGenerator> _slugGeneratorMock = new();
         private readonly Mock<IProductRepository<ProductModel>> _productRepositoryMock = new();
         private readonly Mock<IProductImageService> _productImageServiceMock = new();
         private readonly Mock<IStoreUserRepository<StoreUserModel>> _storeUserRepositoryMock = new();
@@ -28,7 +29,7 @@ namespace Lofn.Tests.Domain.Services
             return new ProductService(
                 _tenantResolverMock.Object,
                 _fileClientMock.Object,
-                _stringClientMock.Object,
+                _slugGeneratorMock.Object,
                 _productRepositoryMock.Object,
                 _productImageServiceMock.Object,
                 _storeUserRepositoryMock.Object,
@@ -44,7 +45,7 @@ namespace Lofn.Tests.Domain.Services
 
         private void GivenSlugFor(string name, string slug)
         {
-            _stringClientMock.Setup(x => x.GenerateSlugAsync(name)).ReturnsAsync(slug);
+            _slugGeneratorMock.Setup(x => x.Generate(name)).Returns(slug);
             _productRepositoryMock.Setup(x => x.ExistSlugAsync(It.IsAny<long>(), It.IsAny<long>(), slug)).ReturnsAsync(false);
         }
 

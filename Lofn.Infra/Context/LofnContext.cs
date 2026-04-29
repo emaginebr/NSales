@@ -86,23 +86,33 @@ public partial class LofnContext : DbContext
             entity.Property(e => e.CategoryId).HasColumnName("category_id");
             entity.Property(e => e.Slug)
                 .IsRequired()
-                .HasMaxLength(120)
+                .HasMaxLength(512)
                 .HasColumnName("slug");
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(120)
                 .HasColumnName("name");
             entity.Property(e => e.StoreId).HasColumnName("store_id");
+            entity.Property(e => e.ParentId).HasColumnName("parent_id");
 
             entity.HasOne(d => d.Store).WithMany(p => p.Categories)
                 .HasForeignKey(d => d.StoreId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_lofn_category_store");
 
+            entity.HasOne(d => d.Parent).WithMany(p => p.Children)
+                .HasForeignKey(d => d.ParentId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("fk_lofn_category_parent");
+
             entity.HasIndex(e => e.Slug)
                 .IsUnique()
                 .HasDatabaseName("ix_lofn_categories_slug_global")
                 .HasFilter("store_id IS NULL");
+
+            entity.HasIndex(e => e.ParentId)
+                .HasDatabaseName("ix_lofn_categories_parent_id")
+                .HasFilter("parent_id IS NOT NULL");
         });
 
         modelBuilder.Entity<Store>(entity =>

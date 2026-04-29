@@ -69,13 +69,16 @@ namespace Lofn.Application
             injectDependency(typeof(IChatGPTClient), typeof(ChatGPTClient), services, scoped);
             injectDependency(typeof(IMailClient), typeof(MailClient), services, scoped);
             injectDependency(typeof(IFileClient), typeof(FileClient), services, scoped);
-            injectDependency(typeof(IStringClient), typeof(StringClient), services, scoped);
             injectDependency(typeof(IDocumentClient), typeof(DocumentClient), services, scoped);
             injectDependency(typeof(IProductClient), typeof(ProductClient), services, scoped);
             injectDependency(typeof(IStoreClient), typeof(StoreClient), services, scoped);
             injectDependency(typeof(ICategoryClient), typeof(CategoryClient), services, scoped);
             injectDependency(typeof(IStoreUserClient), typeof(StoreUserClient), services, scoped);
             injectDependency(typeof(IImageClient), typeof(ImageClient), services, scoped);
+            #endregion
+
+            #region Core
+            injectDependency(typeof(ISlugGenerator), typeof(SlugGenerator), services, scoped);
             #endregion
 
             #region Service
