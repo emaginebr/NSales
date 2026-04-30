@@ -61,6 +61,10 @@ namespace Lofn.Application
             injectDependency(typeof(ICategoryRepository<CategoryModel>), typeof(CategoryRepository), services, scoped);
             injectDependency(typeof(IStoreRepository<StoreModel>), typeof(StoreRepository), services, scoped);
             injectDependency(typeof(IStoreUserRepository<StoreUserModel>), typeof(StoreUserRepository), services, scoped);
+            injectDependency(
+                typeof(IProductTypeRepository<ProductTypeModel, ProductTypeFilterModel, ProductTypeCustomizationGroupModel, ProductTypeCustomizationOptionModel>),
+                typeof(ProductTypeRepository), services, scoped);
+            injectDependency(typeof(IProductFilterValueRepository<ProductFilterValueModel>), typeof(ProductFilterValueRepository), services, scoped);
             #endregion
 
             #region Client
@@ -88,6 +92,9 @@ namespace Lofn.Application
             injectDependency(typeof(IStoreService), typeof(StoreService), services, scoped);
             injectDependency(typeof(IStoreUserService), typeof(StoreUserService), services, scoped);
             injectDependency(typeof(IShopCartService), typeof(ShopCartService), services, scoped);
+            injectDependency(typeof(IProductTypeService), typeof(ProductTypeService), services, scoped);
+            services.AddScoped<ProductFilterValueResolver>();
+            services.AddScoped<ProductPriceCalculator>();
             #endregion
 
             #region Validators

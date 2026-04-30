@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using Lofn.DTO.ProductType;
 
 namespace Lofn.DTO.Product
 {
@@ -38,5 +39,11 @@ namespace Lofn.DTO.Product
         public DateTime UpdatedAt { get; set; }
         [JsonPropertyName("images")]
         public IList<ProductImageInfo> Images { get; set; }
+
+        [JsonPropertyName("filterValues")]
+        public IList<ProductFilterValueInfo> FilterValues { get; set; }
+
+        [JsonPropertyName("appliedProductTypeId")]
+        public long? AppliedProductTypeId { get; set; }
     }
 }

@@ -7,6 +7,11 @@ namespace Lofn.Domain.Mappers
     {
         public static CategoryInfo ToInfo(CategoryModel md)
         {
+            return ToInfo(md, null, null);
+        }
+
+        public static CategoryInfo ToInfo(CategoryModel md, long? appliedProductTypeId, long? appliedProductTypeOriginCategoryId)
+        {
             return new CategoryInfo
             {
                 CategoryId = md.CategoryId,
@@ -14,7 +19,10 @@ namespace Lofn.Domain.Mappers
                 Name = md.Name,
                 StoreId = md.StoreId,
                 IsGlobal = md.StoreId == null,
-                ParentCategoryId = md.ParentId
+                ParentCategoryId = md.ParentId,
+                ProductTypeId = md.ProductTypeId,
+                AppliedProductTypeId = appliedProductTypeId,
+                AppliedProductTypeOriginCategoryId = appliedProductTypeOriginCategoryId
             };
         }
 
@@ -25,7 +33,8 @@ namespace Lofn.Domain.Mappers
                 CategoryId = dto.CategoryId,
                 Name = dto.Name,
                 StoreId = dto.StoreId,
-                ParentId = dto.ParentCategoryId
+                ParentId = dto.ParentCategoryId,
+                ProductTypeId = dto.ProductTypeId
             };
         }
     }

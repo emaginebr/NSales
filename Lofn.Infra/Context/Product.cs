@@ -42,4 +42,6 @@ public partial class Product
     public virtual Category Category { get; set; }
 
     public virtual ICollection<ProductImage> ProductImages { get; set; } = new List<ProductImage>();
+
+    public virtual ICollection<ProductFilterValue> FilterValues { get; set; } = new List<ProductFilterValue>();
 }

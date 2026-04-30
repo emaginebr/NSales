@@ -17,5 +17,8 @@ namespace Lofn.Domain.Interfaces
         Task<IList<ProductInfo>> ListFeaturedByStoreSlugAsync(string storeSlug, int limit);
         Task<ProductModel> InsertAsync(ProductInsertInfo product, long storeId, long userId);
         Task<ProductModel> UpdateAsync(ProductUpdateInfo product, long storeId, long userId);
+
+        // 003-product-type-filters
+        Task<ProductSearchFilteredResult> SearchFilteredAsync(ProductSearchFilteredParam param);
     }
 }

@@ -1,5 +1,7 @@
 using Lofn.Domain.Interfaces;
+using Lofn.Domain.Services;
 using Lofn.DTO.Product;
+using Lofn.DTO.ProductType;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NAuth.ACL.Interfaces;
@@ -14,16 +16,19 @@ namespace Lofn.API.Controllers
         private readonly IUserClient _userClient;
         private readonly IProductService _productService;
         private readonly IStoreService _storeService;
+        private readonly ProductPriceCalculator _priceCalculator;
 
         public ProductController(
             IUserClient userClient,
             IProductService productService,
-            IStoreService storeService
+            IStoreService storeService,
+            ProductPriceCalculator priceCalculator
         )
         {
             _userClient = userClient;
             _productService = productService;
             _storeService = storeService;
+            _priceCalculator = priceCalculator;
         }
 
         [Authorize]
@@ -68,6 +73,30 @@ namespace Lofn.API.Controllers
                     param.UserId = user.UserId;
             }
             return Ok(await _productService.SearchAsync(param));
+        }
+
+        [AllowAnonymous]
+        [HttpPost("{productId:long}/price")]
+        public async Task<ActionResult<ProductPriceCalculationResult>> CalculatePrice(long productId, [FromBody] ProductPriceCalculationRequest request)
+        {
+            var optionIds = request?.OptionIds ?? new System.Collections.Generic.List<long>();
+            var result = await _priceCalculator.CalculateAsync(productId, optionIds);
+            return Ok(result);
+        }
+
+        [AllowAnonymous]
+        [HttpPost("search-filtered")]
+        public async Task<ActionResult<ProductSearchFilteredResult>> SearchFiltered([FromBody] ProductSearchFilteredParam param)
+        {
+            try
+            {
+                var result = await _productService.SearchFilteredAsync(param);
+                return Ok(result);
+            }
+            catch (System.Exception ex) when (ex.Message == "Store not found" || ex.Message == "Category not found")
+            {
+                return NotFound(ex.Message);
+            }
         }
 
     }

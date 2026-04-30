@@ -203,5 +203,32 @@ namespace Lofn.Infra.Repository
             }
             await _context.SaveChangesAsync();
         }
+
+        public async Task<(long? AppliedProductTypeId, long? OriginCategoryId)> GetAppliedProductTypeAsync(long categoryId)
+        {
+            var current = await _context.Categories.FindAsync(categoryId);
+            if (current == null) return (null, null);
+
+            for (var i = 0; i < 32; i++)
+            {
+                if (current.ProductTypeId.HasValue)
+                    return (current.ProductTypeId, current.CategoryId);
+
+                if (current.ParentId == null) break;
+
+                var parent = await _context.Categories.FindAsync(current.ParentId.Value);
+                if (parent == null) break;
+                current = parent;
+            }
+            return (null, null);
+        }
+
+        public async Task UpdateProductTypeIdAsync(long categoryId, long? productTypeId)
+        {
+            var row = await _context.Categories.FindAsync(categoryId);
+            if (row == null) return;
+            row.ProductTypeId = productTypeId;
+            await _context.SaveChangesAsync();
+        }
     }
 }

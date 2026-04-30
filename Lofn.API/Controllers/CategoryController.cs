@@ -1,3 +1,4 @@
+using Lofn.Application.Authorization;
 using Lofn.Domain.Interfaces;
 using Lofn.Domain.Mappers;
 using Lofn.DTO.Category;
@@ -85,6 +86,40 @@ namespace Lofn.API.Controllers
 
             await _categoryService.DeleteAsync(categoryId, store.StoreId, userSession.UserId);
             return NoContent();
+        }
+
+        [Authorize]
+        [TenantAdmin]
+        [HttpPut("{categoryId:long}/producttype/{productTypeId:long}")]
+        public async Task<IActionResult> LinkProductType(long categoryId, long productTypeId)
+        {
+            await _categoryService.LinkProductTypeAsync(categoryId, productTypeId);
+            return Ok(new { categoryId, productTypeId });
+        }
+
+        [Authorize]
+        [TenantAdmin]
+        [HttpDelete("{categoryId:long}/producttype")]
+        public async Task<IActionResult> UnlinkProductType(long categoryId)
+        {
+            await _categoryService.UnlinkProductTypeAsync(categoryId);
+            return Ok(new { categoryId, productTypeId = (long?)null });
+        }
+
+        [AllowAnonymous]
+        [HttpGet("{categoryId:long}/producttype/applied")]
+        public async Task<IActionResult> GetAppliedProductType(long categoryId)
+        {
+            var resolution = await _categoryService.GetAppliedProductTypeAsync(categoryId);
+            if (resolution == null)
+                return Ok((object)null);
+
+            return Ok(new
+            {
+                appliedProductTypeId = resolution.ProductType.ProductTypeId,
+                originCategoryId = resolution.OriginCategoryId,
+                productType = ProductTypeMapper.ToInfo(resolution.ProductType)
+            });
         }
     }
 }

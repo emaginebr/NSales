@@ -5,6 +5,11 @@ import requests
 from dotenv import load_dotenv
 from openai import OpenAI
 
+from seed_product_types import (
+    seed_product_type_tree,
+    link_category_to_product_type,
+)
+
 load_dotenv(override=True)
 
 NAUTH_EMAIL = os.getenv("NAUTH_EMAIL")
@@ -28,8 +33,69 @@ os.makedirs(PHOTOS_DIR, exist_ok=True)
 
 ROOT_CATEGORY = "Roupas"
 
+PRODUCT_TYPES = {
+    "Roupa": {
+        "name": "Roupa",
+        "filters": [
+            {
+                "label": "Tamanho",
+                "data_type": "enum",
+                "allowed_values": ["PP", "P", "M", "G", "GG", "XG"],
+            },
+            {"label": "Marca", "data_type": "text"},
+            {"label": "Cor", "data_type": "text"},
+            {
+                "label": "Gênero",
+                "data_type": "enum",
+                "allowed_values": ["Masculino", "Feminino", "Unissex"],
+            },
+            {"label": "Material", "data_type": "text"},
+        ],
+    },
+    "Acessório de Vestuário": {
+        "name": "Acessório de Vestuário",
+        "filters": [
+            {"label": "Marca", "data_type": "text"},
+            {"label": "Cor", "data_type": "text"},
+            {"label": "Material", "data_type": "text"},
+            {
+                "label": "Gênero",
+                "data_type": "enum",
+                "allowed_values": ["Masculino", "Feminino", "Unissex"],
+            },
+        ],
+    },
+}
+
+# Mapeia subcategoria → nome do product type (chave em PRODUCT_TYPES).
+CATEGORY_TYPE_LINKS = {
+    "Camisetas": "Roupa",
+    "Calças": "Roupa",
+    "Vestidos": "Roupa",
+    "Casacos": "Roupa",
+    "Acessórios": "Acessório de Vestuário",
+}
+
 CATEGORIES = {
     "Camisetas": [
+        {
+            "name": "Kit 3 Camisetas Básicas",
+            "price": 119.90,
+            "discount": 30,
+            "featured": True,
+            "description": (
+                "## Kit 3 Camisetas Básicas\n\n"
+                "**30% OFF** no kit com 3 camisetas básicas de algodão pima nas cores "
+                "branca, preta e cinza mescla.\n\n"
+                "### Inclui\n\n"
+                "- 1x Camiseta básica branca (algodão pima)\n"
+                "- 1x Camiseta básica preta (algodão pima)\n"
+                "- 1x Camiseta básica cinza mescla\n\n"
+                "### Tamanhos disponíveis\n\n"
+                "PP, P, M, G, GG, XG\n\n"
+                "> *O essencial do guarda-roupa por um preço imbatível — 30% OFF.*"
+            ),
+        },
         {
             "name": "Camiseta Vintage Rock 80s",
             "price": 49.90,
@@ -347,6 +413,21 @@ CATEGORIES = {
     ],
     "Acessórios": [
         {
+            "name": "Combo Cinto + Carteira de Couro",
+            "price": 149.00,
+            "discount": 25,
+            "featured": True,
+            "description": (
+                "## Combo Cinto + Carteira de Couro\n\n"
+                "**25% OFF** no combo de cinto trançado + carteira slim, ambos em "
+                "couro legítimo cor caramelo envelhecido.\n\n"
+                "### Inclui\n\n"
+                "- 1x Cinto trançado em couro (tamanhos M ao GG)\n"
+                "- 1x Carteira slim com 6 espaços para cartões\n\n"
+                "> *Combo perfeito para presente — 25% OFF na composição.*"
+            ),
+        },
+        {
             "name": "Bolsa Couro Caramelo Vintage",
             "price": 179.90,
             "discount": 10,
@@ -521,7 +602,9 @@ def create_product(token, store_slug, category_id, product):
         },
         headers={**COMMON_HEADERS, "Authorization": f"Bearer {token}"},
     )
-    resp.raise_for_status()
+    if not resp.ok:
+        print(f"     ERRO HTTP {resp.status_code} ao criar '{product['name']}': {resp.text[:600]}")
+        resp.raise_for_status()
     data = resp.json()
     print(f"     -> productId={data['productId']}, slug={data['slug']}")
     return data["productId"], data["slug"]
@@ -595,9 +678,23 @@ def main():
     print(f"\n>> Categoria raiz: {ROOT_CATEGORY}")
     root_category_id = get_or_create_global_category(token, ROOT_CATEGORY)
 
+    print("\n>> Criando product types e seus filtros...")
+    type_id_by_name = {}
+    for type_key, spec in PRODUCT_TYPES.items():
+        type_id_by_name[type_key] = seed_product_type_tree(
+            token, COMMON_HEADERS, LOFN_URL, spec
+        )
+
     for category_name, products in CATEGORIES.items():
         print(f"\n>> Subcategoria: {ROOT_CATEGORY}/{category_name}")
         category_id = get_or_create_global_category(token, category_name, parent_id=root_category_id)
+
+        type_key = CATEGORY_TYPE_LINKS.get(category_name)
+        if type_key and type_key in type_id_by_name:
+            link_category_to_product_type(
+                token, COMMON_HEADERS, LOFN_URL,
+                category_id, type_id_by_name[type_key], marketplace=True,
+            )
 
         for product in products:
             product_id, product_slug = create_product(
@@ -612,6 +709,7 @@ def main():
     print(f"   Categoria raiz: {ROOT_CATEGORY}")
     print(f"   Subcategorias: {len(CATEGORIES)}")
     print(f"   Produtos: {sum(len(p) for p in CATEGORIES.values())}")
+    print(f"   Product types: {list(type_id_by_name.keys())}")
 
 
 if __name__ == "__main__":

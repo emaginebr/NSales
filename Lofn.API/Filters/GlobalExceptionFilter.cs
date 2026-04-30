@@ -2,7 +2,9 @@ using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Logging;
+using Serilog;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Lofn.API.Filters
@@ -33,15 +35,65 @@ namespace Lofn.API.Filters
                 return;
             }
 
-            _logger.LogError(context.Exception, "Unhandled exception on {Method} {Path}",
-                context.HttpContext.Request.Method,
-                context.HttpContext.Request.Path);
+            var chain = FlattenExceptionChain(context.Exception);
+            var method = context.HttpContext.Request.Method;
+            var path = context.HttpContext.Request.Path;
 
-            context.Result = new ObjectResult(context.Exception.Message)
+            // Belt-and-suspenders logging:
+            // 1) ILogger<T> via Serilog (host pipeline) — primary path.
+            try
+            {
+                _logger.LogError(context.Exception,
+                    "Unhandled exception on {Method} {Path}. Chain: {Chain}",
+                    method, path, string.Join(" | ", chain));
+            }
+            catch { /* swallow logger failures so they don't mask the original error */ }
+
+            // 2) Static Serilog Log.Error — fires even if ILogger DI somehow fails.
+            try
+            {
+                Log.Error(context.Exception,
+                    "Unhandled exception on {Method} {Path}. Chain: {Chain}",
+                    method, path, string.Join(" | ", chain));
+            }
+            catch { /* idem */ }
+
+            // 3) Direct stderr write — guaranteed to land in container stdout/stderr
+            //    regardless of logging provider state. Prefixed for grep-ability.
+            try
+            {
+                Console.Error.WriteLine(
+                    $"[GLOBAL-EXCEPTION] {DateTime.Now:yyyy-MM-dd HH:mm:ss} {method} {path}{Environment.NewLine}" +
+                    string.Join(Environment.NewLine, chain.Select(c => $"  └─ {c}")) +
+                    Environment.NewLine +
+                    $"[GLOBAL-EXCEPTION-STACK] {context.Exception}");
+                Console.Error.Flush();
+            }
+            catch { /* idem */ }
+
+            context.Result = new ObjectResult(new
+            {
+                success = false,
+                error = context.Exception.Message,
+                exceptionType = context.Exception.GetType().FullName,
+                innerExceptions = chain
+            })
             {
                 StatusCode = 500
             };
             context.ExceptionHandled = true;
+        }
+
+        private static List<string> FlattenExceptionChain(Exception ex)
+        {
+            var chain = new List<string>();
+            var current = ex;
+            while (current != null)
+            {
+                chain.Add($"{current.GetType().Name}: {current.Message}");
+                current = current.InnerException;
+            }
+            return chain;
         }
     }
 }

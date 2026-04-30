@@ -5,6 +5,11 @@ import requests
 from dotenv import load_dotenv
 from openai import OpenAI
 
+from seed_product_types import (
+    seed_product_type_tree,
+    link_category_to_product_type,
+)
+
 load_dotenv(override=True)
 
 NAUTH_EMAIL = os.getenv("NAUTH_EMAIL")
@@ -30,8 +35,78 @@ PRODUCT_TYPE_INFO = 2  # InfoProduct
 
 ROOT_CATEGORY = "Cursos"
 
+PRODUCT_TYPES = {
+    "Curso Online": {
+        "name": "Curso Online",
+        "filters": [
+            {"label": "Carga_horaria", "data_type": "integer"},
+            {
+                "label": "Nível",
+                "data_type": "enum",
+                "allowed_values": ["Iniciante", "Intermediário", "Avançado"],
+            },
+            {
+                "label": "Idioma",
+                "data_type": "enum",
+                "allowed_values": ["Português", "Inglês", "Espanhol"],
+            },
+            {"label": "Certificado", "data_type": "boolean"},
+            {"label": "Instrutor", "data_type": "text"},
+        ],
+        "customization_groups": [
+            {
+                "label": "Modalidade de Acesso",
+                "selection_mode": "single",
+                "is_required": True,
+                "options": [
+                    {"label": "Acesso 6 meses", "price_delta_cents": 0, "is_default": True},
+                    {"label": "Acesso 1 ano", "price_delta_cents": 9900},
+                    {"label": "Acesso vitalício", "price_delta_cents": 24900},
+                ],
+            },
+            {
+                "label": "Mentoria Individual",
+                "selection_mode": "single",
+                "is_required": False,
+                "options": [
+                    {"label": "Sem mentoria", "price_delta_cents": 0, "is_default": True},
+                    {"label": "1 sessão (1h)", "price_delta_cents": 19900},
+                    {"label": "Pacote 4 sessões", "price_delta_cents": 59900},
+                ],
+            },
+        ],
+    },
+}
+
+CATEGORY_TYPE_LINKS = {
+    "Programação": "Curso Online",
+    "IA": "Curso Online",
+    "Banco de Dados": "Curso Online",
+    "Designer": "Curso Online",
+}
+
 CATEGORIES = {
     "Programação": [
+        {
+            "name": "Bundle DevOps Completo (Black Friday)",
+            "price": 397.00,
+            "discount": 40,
+            "featured": True,
+            "description": (
+                "## Bundle DevOps Completo — Black Friday\n\n"
+                "**40% OFF**: pacote com 3 cursos completos para se tornar DevOps Engineer "
+                "do zero ao avançado.\n\n"
+                "### Inclui\n\n"
+                "- Docker & Kubernetes na Prática (40h)\n"
+                "- CI/CD com GitHub Actions e Jenkins (25h)\n"
+                "- Terraform e Infraestrutura como Código (30h)\n\n"
+                "### Bônus\n\n"
+                "- 6 meses de acesso à comunidade premium\n"
+                "- 2 sessões de mentoria individual\n"
+                "- Certificado de conclusão por curso\n\n"
+                "> *40% OFF em promoção limitada — vire DevOps com 3 cursos por menos do que 1.*"
+            ),
+        },
         {
             "name": "Full Stack com React e Node.js",
             "price": 497.00,
@@ -556,7 +631,9 @@ def create_product(token, store_slug, category_id, product):
         },
         headers={**COMMON_HEADERS, "Authorization": f"Bearer {token}"},
     )
-    resp.raise_for_status()
+    if not resp.ok:
+        print(f"     ERRO HTTP {resp.status_code} ao criar '{product['name']}': {resp.text[:600]}")
+        resp.raise_for_status()
     data = resp.json()
     print(f"     -> productId={data['productId']}, slug={data['slug']}")
     return data["productId"], data["slug"]
@@ -629,9 +706,23 @@ def main():
     print(f"\n>> Categoria raiz: {ROOT_CATEGORY}")
     root_category_id = get_or_create_global_category(token, ROOT_CATEGORY)
 
+    print("\n>> Criando product types e suas árvores (filtros + customizações)...")
+    type_id_by_name = {}
+    for type_key, spec in PRODUCT_TYPES.items():
+        type_id_by_name[type_key] = seed_product_type_tree(
+            token, COMMON_HEADERS, LOFN_URL, spec
+        )
+
     for category_name, products in CATEGORIES.items():
         print(f"\n>> Subcategoria: {ROOT_CATEGORY}/{category_name}")
         category_id = get_or_create_global_category(token, category_name, parent_id=root_category_id)
+
+        type_key = CATEGORY_TYPE_LINKS.get(category_name)
+        if type_key and type_key in type_id_by_name:
+            link_category_to_product_type(
+                token, COMMON_HEADERS, LOFN_URL,
+                category_id, type_id_by_name[type_key], marketplace=True,
+            )
 
         for product in products:
             product_id, product_slug = create_product(
@@ -646,6 +737,7 @@ def main():
     print(f"   Categoria raiz: {ROOT_CATEGORY}")
     print(f"   Subcategorias: {len(CATEGORIES)}")
     print(f"   Produtos: {sum(len(p) for p in CATEGORIES.values())}")
+    print(f"   Product types: {list(type_id_by_name.keys())}")
 
 
 if __name__ == "__main__":

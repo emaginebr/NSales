@@ -24,5 +24,16 @@ namespace Lofn.Domain.Interfaces
 
         // 002-category-subcategories
         Task<IList<CategoryTreeNodeInfo>> GetTreeAsync(long? storeId);
+
+        // 003-product-type-filters
+        Task LinkProductTypeAsync(long categoryId, long productTypeId);
+        Task UnlinkProductTypeAsync(long categoryId);
+        Task<AppliedProductTypeResolution> GetAppliedProductTypeAsync(long categoryId);
+    }
+
+    public class AppliedProductTypeResolution
+    {
+        public ProductTypeModel ProductType { get; set; }
+        public long OriginCategoryId { get; set; }
     }
 }

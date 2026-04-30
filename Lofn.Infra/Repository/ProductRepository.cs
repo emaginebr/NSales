@@ -132,5 +132,46 @@ namespace Lofn.Infra.Repository
                 .ToListAsync();
             return rows.Select(ProductDbMapper.ToModel);
         }
+
+        public async Task<(IList<ProductModel> Items, int PageCount, int TotalItems)> SearchByFilterValuesAsync(
+            long? storeId,
+            long categoryId,
+            IList<long> categoryIdsRollup,
+            IList<(long FilterId, string Value)> filters,
+            int pageNum)
+        {
+            var rollup = categoryIdsRollup ?? new List<long> { categoryId };
+
+            var q = _context.Products
+                .Where(p => p.Status == STATUS_ACTIVE
+                    && p.CategoryId.HasValue
+                    && rollup.Contains(p.CategoryId.Value));
+
+            if (storeId.HasValue && storeId.Value > 0)
+                q = q.Where(p => p.StoreId == storeId.Value);
+
+            if (filters != null)
+            {
+                foreach (var (filterId, value) in filters)
+                {
+                    var fId = filterId;
+                    var v = value;
+                    q = q.Where(p => _context.ProductFilterValues
+                        .Any(pfv => pfv.ProductId == p.ProductId && pfv.FilterId == fId && pfv.Value == v));
+                }
+            }
+
+            var totalCount = await q.CountAsync();
+            var pageCount = (int)Math.Ceiling((double)totalCount / PAGE_SIZE);
+
+            var rows = await q
+                .OrderBy(p => p.ProductId)
+                .Skip((pageNum - 1) * PAGE_SIZE)
+                .Take(PAGE_SIZE)
+                .ToListAsync();
+
+            IList<ProductModel> items = rows.Select(ProductDbMapper.ToModel).ToList();
+            return (items, pageCount, totalCount);
+        }
     }
 }

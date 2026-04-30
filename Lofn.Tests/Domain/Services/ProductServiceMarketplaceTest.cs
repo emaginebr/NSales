@@ -22,10 +22,15 @@ namespace Lofn.Tests.Domain.Services
         private readonly Mock<IStoreUserRepository<StoreUserModel>> _storeUserRepositoryMock = new();
         private readonly Mock<IStoreRepository<StoreModel>> _storeRepositoryMock = new();
         private readonly Mock<ICategoryRepository<CategoryModel>> _categoryRepositoryMock = new();
+        private readonly Mock<ICategoryService> _categoryServiceMock = new();
+        private readonly Mock<IProductFilterValueRepository<ProductFilterValueModel>> _filterValueRepositoryMock = new();
 
         private ProductService BuildSut(bool marketplace)
         {
             _tenantResolverMock.Setup(x => x.Marketplace).Returns(marketplace);
+            _filterValueRepositoryMock
+                .Setup(r => r.GetByProductAsync(It.IsAny<long>()))
+                .ReturnsAsync(new System.Collections.Generic.List<ProductFilterValueModel>());
             return new ProductService(
                 _tenantResolverMock.Object,
                 _fileClientMock.Object,
@@ -34,7 +39,9 @@ namespace Lofn.Tests.Domain.Services
                 _productImageServiceMock.Object,
                 _storeUserRepositoryMock.Object,
                 _storeRepositoryMock.Object,
-                _categoryRepositoryMock.Object
+                _categoryRepositoryMock.Object,
+                new ProductFilterValueResolver(_categoryServiceMock.Object),
+                _filterValueRepositoryMock.Object
             );
         }
 

@@ -1,6 +1,8 @@
 using System.Linq;
+using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Types;
+using Lofn.Domain.Interfaces;
 using Lofn.Infra.Context;
 
 namespace Lofn.GraphQL.Types;
@@ -16,5 +18,21 @@ public class CategoryTypeExtension
     {
         using var context = dbContextFactory.CreateDbContext();
         return context.Products.Count(p => p.CategoryId == category.CategoryId && p.Status == 1);
+    }
+
+    public async Task<long?> GetAppliedProductTypeId(
+        [Parent] Category category,
+        [Service] ICategoryService categoryService)
+    {
+        var resolution = await categoryService.GetAppliedProductTypeAsync(category.CategoryId);
+        return resolution?.ProductType?.ProductTypeId;
+    }
+
+    public async Task<long?> GetAppliedProductTypeOriginCategoryId(
+        [Parent] Category category,
+        [Service] ICategoryService categoryService)
+    {
+        var resolution = await categoryService.GetAppliedProductTypeAsync(category.CategoryId);
+        return resolution?.OriginCategoryId;
     }
 }

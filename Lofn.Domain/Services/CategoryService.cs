@@ -21,6 +21,11 @@ namespace Lofn.Domain.Services
         private readonly ISlugGenerator _slugGenerator;
         private readonly ICategoryRepository<CategoryModel> _categoryRepository;
         private readonly IStoreRepository<StoreModel> _storeRepository;
+        private readonly IProductTypeRepository<
+            ProductTypeModel,
+            ProductTypeFilterModel,
+            ProductTypeCustomizationGroupModel,
+            ProductTypeCustomizationOptionModel> _productTypeRepository;
         private readonly IValidator<CategoryInsertInfo> _insertValidator;
         private readonly IValidator<CategoryUpdateInfo> _updateValidator;
         private readonly IValidator<CategoryGlobalInsertInfo> _globalInsertValidator;
@@ -30,6 +35,11 @@ namespace Lofn.Domain.Services
             ISlugGenerator slugGenerator,
             ICategoryRepository<CategoryModel> categoryRepository,
             IStoreRepository<StoreModel> storeRepository,
+            IProductTypeRepository<
+                ProductTypeModel,
+                ProductTypeFilterModel,
+                ProductTypeCustomizationGroupModel,
+                ProductTypeCustomizationOptionModel> productTypeRepository,
             IValidator<CategoryInsertInfo> insertValidator,
             IValidator<CategoryUpdateInfo> updateValidator,
             IValidator<CategoryGlobalInsertInfo> globalInsertValidator,
@@ -39,6 +49,7 @@ namespace Lofn.Domain.Services
             _slugGenerator = slugGenerator;
             _categoryRepository = categoryRepository;
             _storeRepository = storeRepository;
+            _productTypeRepository = productTypeRepository;
             _insertValidator = insertValidator;
             _updateValidator = updateValidator;
             _globalInsertValidator = globalInsertValidator;
@@ -521,6 +532,45 @@ namespace Lofn.Domain.Services
         private static ValidationException BuildValidationException(string message)
         {
             return new ValidationException(message, new[] { new ValidationFailure(string.Empty, message) });
+        }
+
+        public async Task LinkProductTypeAsync(long categoryId, long productTypeId)
+        {
+            var category = await _categoryRepository.GetByIdAsync(categoryId);
+            if (category == null)
+                throw BuildValidationException("Category not found");
+
+            var typeExists = await _productTypeRepository.ExistsAsync(productTypeId);
+            if (!typeExists)
+                throw BuildValidationException("Product type not found");
+
+            await _categoryRepository.UpdateProductTypeIdAsync(categoryId, productTypeId);
+        }
+
+        public async Task UnlinkProductTypeAsync(long categoryId)
+        {
+            var category = await _categoryRepository.GetByIdAsync(categoryId);
+            if (category == null)
+                throw BuildValidationException("Category not found");
+
+            await _categoryRepository.UpdateProductTypeIdAsync(categoryId, null);
+        }
+
+        public async Task<AppliedProductTypeResolution> GetAppliedProductTypeAsync(long categoryId)
+        {
+            var (appliedTypeId, originId) = await _categoryRepository.GetAppliedProductTypeAsync(categoryId);
+            if (appliedTypeId == null || originId == null)
+                return null;
+
+            var type = await _productTypeRepository.GetByIdAsync(appliedTypeId.Value);
+            if (type == null)
+                return null;
+
+            return new AppliedProductTypeResolution
+            {
+                ProductType = type,
+                OriginCategoryId = originId.Value
+            };
         }
     }
 }

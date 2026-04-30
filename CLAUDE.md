@@ -72,7 +72,7 @@ Types/                      → ObjectType extensions adding computed fields via
 - `StoreTypeExtension` → `logoUrl` (resolves via IFileClient)
 - `ProductTypeExtension` → `imageUrl` (resolves via IFileClient)
 - `ProductImageTypeExtension` → `imageUrl` (resolves via IFileClient)
-- `CategoryTypeExtension` → `productCount` (counts active products via navigation property), `isGlobal` (true when `StoreId` is null)
+- `CategoryTypeExtension` → `productCount` (counts active products via navigation property), `isGlobal` (true when `StoreId` is null), `appliedProductTypeId` and `appliedProductTypeOriginCategoryId` (closest-ancestor resolution from feature 003)
 
 **Key patterns:**
 - Queries return `IQueryable<Entity>` directly from EF Core DbContext (no DTOs)
@@ -109,9 +109,33 @@ lib/nauth-core/ → Auth library
 - `DELETE /store/delete/{storeId}` — [Authorize] delete store
 
 **REST — Product** (`/product`):
-- `POST /product/{storeSlug}/insert` — [Authorize] create product
-- `POST /product/{storeSlug}/update` — [Authorize] update product
+- `POST /product/{storeSlug}/insert` — [Authorize] create product (accepts `filterValues[]` when category has applied product type)
+- `POST /product/{storeSlug}/update` — [Authorize] update product (idempotent reconcile of `filterValues[]`)
 - `POST /product/search` — public product search with pagination
+- `POST /product/search-filtered` — [AllowAnonymous] paginated catalog filtered by `categorySlug + filters[]` (rollup parent⇡children); response includes `appliedFilters[]`, `ignoredFilterIds[]`, `appliedProductTypeId`
+- `POST /product/{productId}/price` — [AllowAnonymous] dynamic price calculation given `optionIds[]`; returns `basePriceCents + breakdown[] + deltaTotalCents + totalCents`
+
+**REST — ProductType** (`/producttype`) — admin only (`IsAdmin = true`), 13 endpoints:
+- `POST /producttype/insert` — [TenantAdmin] create product type (Calçado, Roupa, Carro, Equipamento, Comida, etc.)
+- `POST /producttype/update` — [TenantAdmin] update product type
+- `DELETE /producttype/delete/{productTypeId}` — [TenantAdmin] delete (cascade to filters and customizations)
+- `GET /producttype/list` — [TenantAdmin] list all product types
+- `GET /producttype/{productTypeId}` — [TenantAdmin] get full tree (filters + customization groups + options)
+- `POST /producttype/{productTypeId}/filter/insert` — [TenantAdmin] add filter (`text`/`integer`/`decimal`/`boolean`/`enum`)
+- `POST /producttype/filter/update` — [TenantAdmin] update filter (DataType immutable)
+- `DELETE /producttype/filter/delete/{filterId}` — [TenantAdmin] delete filter
+- `POST /producttype/{productTypeId}/customization/group/insert` — [TenantAdmin] add customization group (`single`/`multi`, `IsRequired`)
+- `POST /producttype/customization/group/update` — [TenantAdmin] update group
+- `DELETE /producttype/customization/group/delete/{groupId}` — [TenantAdmin] delete group (cascade options)
+- `POST /producttype/customization/group/{groupId}/option/insert` — [TenantAdmin] add option with `priceDeltaCents` and `isDefault`
+- `POST /producttype/customization/option/update` — [TenantAdmin] update option
+- `DELETE /producttype/customization/option/delete/{optionId}` — [TenantAdmin] delete option
+
+**REST — Category↔ProductType linking** (extension on `/category` and `/category-global`):
+- `PUT /category/{categoryId}/producttype/{productTypeId}` — [TenantAdmin] link product type to category
+- `DELETE /category/{categoryId}/producttype` — [TenantAdmin] unlink
+- `GET /category/{categoryId}/producttype/applied` — [AllowAnonymous] resolve closest-ancestor product type, returns `{ appliedProductTypeId, originCategoryId, productType }` or `null`
+- Same triple under `/category-global/{categoryId}/producttype/...` for marketplace tenants
 
 **REST — Category** (`/category`) — store-scoped, available only when tenant `Marketplace = false`:
 - `POST /category/{storeSlug}/insert` — [Authorize] create category (returns 403 if `Marketplace = true`)

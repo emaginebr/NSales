@@ -1,11 +1,19 @@
+using System.Collections.Generic;
+using System.Linq;
 using Lofn.Domain.Models;
 using Lofn.DTO.Product;
+using Lofn.DTO.ProductType;
 
 namespace Lofn.Domain.Mappers
 {
     public static class ProductMapper
     {
         public static ProductInfo ToInfo(ProductModel md)
+        {
+            return ToInfo(md, null);
+        }
+
+        public static ProductInfo ToInfo(ProductModel md, ProductTypeModel appliedType)
         {
             return new ProductInfo
             {
@@ -23,7 +31,11 @@ namespace Lofn.Domain.Mappers
                 ProductType = md.ProductType,
                 Featured = md.Featured,
                 CreatedAt = md.CreatedAt,
-                UpdatedAt = md.UpdatedAt
+                UpdatedAt = md.UpdatedAt,
+                FilterValues = (md.FilterValues ?? new List<ProductFilterValueModel>())
+                    .Select(ProductFilterValueMapper.ToInfo)
+                    .ToList(),
+                AppliedProductTypeId = appliedType?.ProductTypeId
             };
         }
 

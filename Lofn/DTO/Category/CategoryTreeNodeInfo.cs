@@ -20,6 +20,12 @@ namespace Lofn.DTO.Category
         [JsonPropertyName("isGlobal")]
         public bool IsGlobal { get; set; }
 
+        [JsonPropertyName("productTypeId")]
+        public long? ProductTypeId { get; set; }
+
+        [JsonPropertyName("appliedProductTypeId")]
+        public long? AppliedProductTypeId { get; set; }
+
         [JsonPropertyName("children")]
         public IList<CategoryTreeNodeInfo> Children { get; set; } = new List<CategoryTreeNodeInfo>();
     }

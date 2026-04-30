@@ -17,6 +17,7 @@ namespace Lofn.Tests.Domain.Services
         private readonly Mock<ISlugGenerator> _slugGeneratorMock = new();
         private readonly Mock<ICategoryRepository<CategoryModel>> _categoryRepositoryMock = new();
         private readonly Mock<IStoreRepository<StoreModel>> _storeRepositoryMock = new();
+        private readonly Mock<IProductTypeRepository<ProductTypeModel, ProductTypeFilterModel, ProductTypeCustomizationGroupModel, ProductTypeCustomizationOptionModel>> _productTypeRepositoryMock = new();
         private readonly Mock<IValidator<CategoryInsertInfo>> _insertValidatorMock = new();
         private readonly Mock<IValidator<CategoryUpdateInfo>> _updateValidatorMock = new();
         private readonly Mock<IValidator<CategoryGlobalInsertInfo>> _globalInsertValidatorMock = new();
@@ -42,6 +43,7 @@ namespace Lofn.Tests.Domain.Services
                 _slugGeneratorMock.Object,
                 _categoryRepositoryMock.Object,
                 _storeRepositoryMock.Object,
+                _productTypeRepositoryMock.Object,
                 _insertValidatorMock.Object,
                 _updateValidatorMock.Object,
                 _globalInsertValidatorMock.Object,

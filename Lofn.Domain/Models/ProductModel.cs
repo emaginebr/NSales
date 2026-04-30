@@ -1,5 +1,6 @@
 using Lofn.DTO.Product;
 using System;
+using System.Collections.Generic;
 
 namespace Lofn.Domain.Models
 {
@@ -23,5 +24,6 @@ namespace Lofn.Domain.Models
         public DateTime UpdatedAt { get; set; }
         public string StripeProductId { get; set; }
         public string StripePriceId { get; set; }
+        public IList<ProductFilterValueModel> FilterValues { get; set; } = new List<ProductFilterValueModel>();
     }
 }

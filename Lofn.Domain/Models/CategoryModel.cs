@@ -7,6 +7,7 @@ namespace Lofn.Domain.Models
         public string Name { get; set; }
         public long? StoreId { get; set; }
         public long? ParentId { get; set; }
+        public long? ProductTypeId { get; set; }
         public bool IsGlobal => StoreId == null;
     }
 }

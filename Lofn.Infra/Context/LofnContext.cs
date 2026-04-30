@@ -25,6 +25,18 @@ public partial class LofnContext : DbContext
 
     public virtual DbSet<StoreUser> StoreUsers { get; set; }
 
+    public virtual DbSet<ProductType> ProductTypes { get; set; }
+
+    public virtual DbSet<ProductTypeFilter> ProductTypeFilters { get; set; }
+
+    public virtual DbSet<ProductTypeFilterAllowedValue> ProductTypeFilterAllowedValues { get; set; }
+
+    public virtual DbSet<ProductTypeCustomizationGroup> ProductTypeCustomizationGroups { get; set; }
+
+    public virtual DbSet<ProductTypeCustomizationOption> ProductTypeCustomizationOptions { get; set; }
+
+    public virtual DbSet<ProductFilterValue> ProductFilterValues { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Product>(entity =>
@@ -94,6 +106,7 @@ public partial class LofnContext : DbContext
                 .HasColumnName("name");
             entity.Property(e => e.StoreId).HasColumnName("store_id");
             entity.Property(e => e.ParentId).HasColumnName("parent_id");
+            entity.Property(e => e.ProductTypeId).HasColumnName("product_type_id");
 
             entity.HasOne(d => d.Store).WithMany(p => p.Categories)
                 .HasForeignKey(d => d.StoreId)
@@ -105,6 +118,11 @@ public partial class LofnContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName("fk_lofn_category_parent");
 
+            entity.HasOne(d => d.ProductType).WithMany(p => p.Categories)
+                .HasForeignKey(d => d.ProductTypeId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("fk_lofn_categories_product_type");
+
             entity.HasIndex(e => e.Slug)
                 .IsUnique()
                 .HasDatabaseName("ix_lofn_categories_slug_global")
@@ -113,6 +131,10 @@ public partial class LofnContext : DbContext
             entity.HasIndex(e => e.ParentId)
                 .HasDatabaseName("ix_lofn_categories_parent_id")
                 .HasFilter("parent_id IS NOT NULL");
+
+            entity.HasIndex(e => e.ProductTypeId)
+                .HasDatabaseName("ix_lofn_categories_product_type_id")
+                .HasFilter("product_type_id IS NOT NULL");
         });
 
         modelBuilder.Entity<Store>(entity =>
@@ -177,6 +199,206 @@ public partial class LofnContext : DbContext
                 .HasForeignKey(d => d.ProductId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("fk_lofn_product_image_product");
+        });
+
+        modelBuilder.Entity<ProductType>(entity =>
+        {
+            entity.HasKey(e => e.ProductTypeId).HasName("lofn_product_types_pkey");
+            entity.ToTable("lofn_product_types");
+
+            entity.Property(e => e.ProductTypeId).HasColumnName("product_type_id");
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(120)
+                .HasColumnName("name");
+            entity.Property(e => e.Description)
+                .HasMaxLength(500)
+                .HasColumnName("description");
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("updated_at");
+
+            entity.HasIndex(e => e.Name)
+                .IsUnique()
+                .HasDatabaseName("ix_lofn_product_types_name_unique");
+        });
+
+        modelBuilder.Entity<ProductTypeFilter>(entity =>
+        {
+            entity.HasKey(e => e.FilterId).HasName("lofn_product_type_filters_pkey");
+            entity.ToTable("lofn_product_type_filters");
+
+            entity.Property(e => e.FilterId).HasColumnName("filter_id");
+            entity.Property(e => e.ProductTypeId).HasColumnName("product_type_id");
+            entity.Property(e => e.Label)
+                .IsRequired()
+                .HasMaxLength(120)
+                .HasColumnName("label");
+            entity.Property(e => e.DataType)
+                .IsRequired()
+                .HasMaxLength(20)
+                .HasColumnName("data_type");
+            entity.Property(e => e.IsRequired)
+                .HasDefaultValue(false)
+                .HasColumnName("is_required");
+            entity.Property(e => e.DisplayOrder)
+                .HasDefaultValue(0)
+                .HasColumnName("display_order");
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("updated_at");
+
+            entity.HasOne(d => d.ProductType).WithMany(p => p.Filters)
+                .HasForeignKey(d => d.ProductTypeId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("fk_lofn_product_type_filter_type");
+
+            entity.HasIndex(e => new { e.ProductTypeId, e.Label })
+                .IsUnique()
+                .HasDatabaseName("ix_lofn_product_type_filter_label_unique");
+        });
+
+        modelBuilder.Entity<ProductTypeFilterAllowedValue>(entity =>
+        {
+            entity.HasKey(e => e.AllowedValueId).HasName("lofn_product_type_filter_allowed_values_pkey");
+            entity.ToTable("lofn_product_type_filter_allowed_values");
+
+            entity.Property(e => e.AllowedValueId).HasColumnName("allowed_value_id");
+            entity.Property(e => e.FilterId).HasColumnName("filter_id");
+            entity.Property(e => e.Value)
+                .IsRequired()
+                .HasMaxLength(120)
+                .HasColumnName("value");
+            entity.Property(e => e.DisplayOrder)
+                .HasDefaultValue(0)
+                .HasColumnName("display_order");
+
+            entity.HasOne(d => d.Filter).WithMany(p => p.AllowedValues)
+                .HasForeignKey(d => d.FilterId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("fk_lofn_product_type_filter_allowed_value_filter");
+
+            entity.HasIndex(e => new { e.FilterId, e.Value })
+                .IsUnique()
+                .HasDatabaseName("ix_lofn_product_type_filter_allowed_value_unique");
+        });
+
+        modelBuilder.Entity<ProductTypeCustomizationGroup>(entity =>
+        {
+            entity.HasKey(e => e.GroupId).HasName("lofn_product_type_customization_groups_pkey");
+            entity.ToTable("lofn_product_type_customization_groups");
+
+            entity.Property(e => e.GroupId).HasColumnName("group_id");
+            entity.Property(e => e.ProductTypeId).HasColumnName("product_type_id");
+            entity.Property(e => e.Label)
+                .IsRequired()
+                .HasMaxLength(120)
+                .HasColumnName("label");
+            entity.Property(e => e.SelectionMode)
+                .IsRequired()
+                .HasMaxLength(10)
+                .HasColumnName("selection_mode");
+            entity.Property(e => e.IsRequired)
+                .HasDefaultValue(false)
+                .HasColumnName("is_required");
+            entity.Property(e => e.DisplayOrder)
+                .HasDefaultValue(0)
+                .HasColumnName("display_order");
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("updated_at");
+
+            entity.HasOne(d => d.ProductType).WithMany(p => p.CustomizationGroups)
+                .HasForeignKey(d => d.ProductTypeId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("fk_lofn_product_type_customization_group_type");
+
+            entity.HasIndex(e => new { e.ProductTypeId, e.Label })
+                .IsUnique()
+                .HasDatabaseName("ix_lofn_product_type_customization_group_label_unique");
+        });
+
+        modelBuilder.Entity<ProductTypeCustomizationOption>(entity =>
+        {
+            entity.HasKey(e => e.OptionId).HasName("lofn_product_type_customization_options_pkey");
+            entity.ToTable("lofn_product_type_customization_options");
+
+            entity.Property(e => e.OptionId).HasColumnName("option_id");
+            entity.Property(e => e.GroupId).HasColumnName("group_id");
+            entity.Property(e => e.Label)
+                .IsRequired()
+                .HasMaxLength(120)
+                .HasColumnName("label");
+            entity.Property(e => e.PriceDeltaCents)
+                .HasDefaultValue(0L)
+                .HasColumnName("price_delta_cents");
+            entity.Property(e => e.IsDefault)
+                .HasDefaultValue(false)
+                .HasColumnName("is_default");
+            entity.Property(e => e.DisplayOrder)
+                .HasDefaultValue(0)
+                .HasColumnName("display_order");
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("updated_at");
+
+            entity.HasOne(d => d.Group).WithMany(p => p.Options)
+                .HasForeignKey(d => d.GroupId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("fk_lofn_product_type_customization_option_group");
+
+            entity.HasIndex(e => new { e.GroupId, e.Label })
+                .IsUnique()
+                .HasDatabaseName("ix_lofn_product_type_customization_option_label_unique");
+        });
+
+        modelBuilder.Entity<ProductFilterValue>(entity =>
+        {
+            entity.HasKey(e => e.ProductFilterValueId).HasName("lofn_product_filter_values_pkey");
+            entity.ToTable("lofn_product_filter_values");
+
+            entity.Property(e => e.ProductFilterValueId).HasColumnName("product_filter_value_id");
+            entity.Property(e => e.ProductId).HasColumnName("product_id");
+            entity.Property(e => e.FilterId).HasColumnName("filter_id");
+            entity.Property(e => e.Value)
+                .IsRequired()
+                .HasColumnType("text")
+                .HasColumnName("value");
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("updated_at");
+
+            entity.HasOne(d => d.Product).WithMany(p => p.FilterValues)
+                .HasForeignKey(d => d.ProductId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("fk_lofn_product_filter_value_product");
+
+            entity.HasOne(d => d.Filter).WithMany()
+                .HasForeignKey(d => d.FilterId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("fk_lofn_product_filter_value_filter");
+
+            entity.HasIndex(e => new { e.ProductId, e.FilterId })
+                .IsUnique()
+                .HasDatabaseName("ix_lofn_product_filter_value_product_filter_unique");
+
+            entity.HasIndex(e => new { e.FilterId, e.Value })
+                .HasDatabaseName("ix_lofn_product_filter_value_filter_value");
         });
 
         OnModelCreatingPartial(modelBuilder);

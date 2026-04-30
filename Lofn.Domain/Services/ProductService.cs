@@ -25,6 +25,9 @@ namespace Lofn.Domain.Services
         private readonly IStoreUserRepository<StoreUserModel> _storeUserRepository;
         private readonly IStoreRepository<StoreModel> _storeRepository;
         private readonly ICategoryRepository<CategoryModel> _categoryRepository;
+        private readonly ProductFilterValueResolver _filterValueResolver;
+        private readonly IProductFilterValueRepository<ProductFilterValueModel> _filterValueRepository;
+        private readonly ICategoryService _categoryService;
 
         public ProductService(
             ITenantResolver tenantResolver,
@@ -34,7 +37,10 @@ namespace Lofn.Domain.Services
             IProductImageService productImageService,
             IStoreUserRepository<StoreUserModel> storeUserRepository,
             IStoreRepository<StoreModel> storeRepository,
-            ICategoryRepository<CategoryModel> categoryRepository
+            ICategoryRepository<CategoryModel> categoryRepository,
+            ProductFilterValueResolver filterValueResolver,
+            IProductFilterValueRepository<ProductFilterValueModel> filterValueRepository,
+            ICategoryService categoryService = null
         )
         {
             _tenantResolver = tenantResolver;
@@ -45,6 +51,9 @@ namespace Lofn.Domain.Services
             _storeUserRepository = storeUserRepository;
             _storeRepository = storeRepository;
             _categoryRepository = categoryRepository;
+            _filterValueResolver = filterValueResolver;
+            _filterValueRepository = filterValueRepository;
+            _categoryService = categoryService;
         }
 
         private async Task ValidateStoreUserAsync(long storeId, long userId)
@@ -82,7 +91,10 @@ namespace Lofn.Domain.Services
 
         public async Task<ProductModel> GetByIdAsync(long productId)
         {
-            return await _productRepository.GetByIdAsync(productId);
+            var model = await _productRepository.GetByIdAsync(productId);
+            if (model == null) return null;
+            model.FilterValues = await _filterValueRepository.GetByProductAsync(productId);
+            return model;
         }
 
         public async Task<ProductModel> GetByIdAsync(long productId, long storeId, long userId)
@@ -158,7 +170,50 @@ namespace Lofn.Domain.Services
             };
             model.Slug = await GenerateSlugAsync(storeId, 0, product.Name);
 
-            return await _productRepository.InsertAsync(model);
+            var resolveResult = await ResolveAndValidateFilterValuesAsync(product.CategoryId, product.FilterValues);
+
+            var inserted = await _productRepository.InsertAsync(model);
+
+            if (resolveResult != null && resolveResult.Resolved.Count > 0)
+            {
+                foreach (var fv in resolveResult.Resolved) fv.ProductId = inserted.ProductId;
+                await _filterValueRepository.ReplaceForProductAsync(inserted.ProductId, resolveResult.Resolved);
+                inserted.FilterValues = resolveResult.Resolved;
+            }
+            else if (resolveResult != null)
+            {
+                inserted.FilterValues = new List<ProductFilterValueModel>();
+            }
+
+            return inserted;
+        }
+
+        private async Task<ProductFilterValueResolver.ResolveResult> ResolveAndValidateFilterValuesAsync(
+            long? categoryId, IList<ProductFilterValueAssign> filterValues)
+        {
+            if (filterValues == null || filterValues.Count == 0)
+            {
+                if (categoryId == null) return null;
+                var emptyResolve = await _filterValueResolver.ResolveAsync(categoryId, new List<(long, string)>());
+                if (emptyResolve.MissingRequiredLabels.Count > 0)
+                    throw BuildValidationException("Missing required filter values: " + string.Join(", ", emptyResolve.MissingRequiredLabels));
+                return emptyResolve;
+            }
+
+            var pairs = filterValues.Select(fv => (fv.FilterId, fv.Value)).ToList();
+            var resolveResult = await _filterValueResolver.ResolveAsync(categoryId, pairs);
+
+            if (resolveResult.MissingRequiredLabels.Count > 0 || resolveResult.InvalidValueErrors.Count > 0)
+            {
+                var messages = new List<string>();
+                if (resolveResult.MissingRequiredLabels.Count > 0)
+                    messages.Add("Missing required filter values: " + string.Join(", ", resolveResult.MissingRequiredLabels));
+                if (resolveResult.InvalidValueErrors.Count > 0)
+                    messages.AddRange(resolveResult.InvalidValueErrors);
+                throw BuildValidationException(string.Join("; ", messages));
+            }
+
+            return resolveResult;
         }
 
         public async Task<ProductModel> UpdateAsync(ProductUpdateInfo product, long storeId, long userId)
@@ -192,7 +247,18 @@ namespace Lofn.Domain.Services
             existing.UpdatedAt = DateTime.Now;
             existing.Slug = await GenerateSlugAsync(storeId, product.ProductId, product.Name);
 
-            return await _productRepository.UpdateAsync(existing);
+            var resolveResult = await ResolveAndValidateFilterValuesAsync(product.CategoryId, product.FilterValues);
+
+            var updated = await _productRepository.UpdateAsync(existing);
+
+            if (resolveResult != null)
+            {
+                foreach (var fv in resolveResult.Resolved) fv.ProductId = updated.ProductId;
+                await _filterValueRepository.ReplaceForProductAsync(updated.ProductId, resolveResult.Resolved);
+                updated.FilterValues = resolveResult.Resolved;
+            }
+
+            return updated;
         }
 
         public async Task<ProductListPagedResult> SearchAsync(ProductSearchInternalParam param)
@@ -270,6 +336,93 @@ namespace Lofn.Domain.Services
         {
             var items = await _productRepository.ListByStoreAsync(storeId);
             return items.OrderBy(x => x.Price).ToList();
+        }
+
+        public async Task<ProductSearchFilteredResult> SearchFilteredAsync(ProductSearchFilteredParam param)
+        {
+            if (string.IsNullOrEmpty(param.CategorySlug))
+                throw new Exception("CategorySlug is required");
+
+            long? storeId = null;
+            CategoryModel category;
+
+            if (!string.IsNullOrEmpty(param.StoreSlug))
+            {
+                var store = await _storeRepository.GetBySlugAsync(param.StoreSlug);
+                if (store == null)
+                    throw new Exception("Store not found");
+                storeId = store.StoreId;
+
+                category = await _categoryRepository.GetBySlugAndStoreAsync(store.StoreId, param.CategorySlug);
+            }
+            else
+            {
+                category = await _categoryRepository.GetBySlugAsync(param.CategorySlug);
+            }
+
+            if (category == null)
+                throw new Exception("Category not found");
+
+            var descendants = await _categoryRepository.GetDescendantsAsync(category.CategoryId);
+            var rollup = new List<long> { category.CategoryId };
+            rollup.AddRange(descendants.Select(d => d.CategoryId));
+
+            var resolution = _categoryService != null
+                ? await _categoryService.GetAppliedProductTypeAsync(category.CategoryId)
+                : null;
+
+            var inputFilters = param.Filters ?? new List<ProductFilterValueAssign>();
+            var validPairs = new List<(long FilterId, string Value)>();
+            var ignoredFilterIds = new List<long>();
+            var appliedFilters = new List<AppliedFilterInfo>();
+
+            if (resolution?.ProductType?.Filters != null)
+            {
+                var filtersById = resolution.ProductType.Filters.ToDictionary(f => f.FilterId);
+                foreach (var f in inputFilters)
+                {
+                    if (filtersById.TryGetValue(f.FilterId, out var filter))
+                    {
+                        validPairs.Add((f.FilterId, f.Value));
+                        appliedFilters.Add(new AppliedFilterInfo
+                        {
+                            FilterId = f.FilterId,
+                            Label = filter.Label,
+                            Value = f.Value
+                        });
+                    }
+                    else
+                    {
+                        ignoredFilterIds.Add(f.FilterId);
+                    }
+                }
+            }
+            else
+            {
+                ignoredFilterIds.AddRange(inputFilters.Select(f => f.FilterId));
+            }
+
+            var pageNum = param.PageNum > 0 ? param.PageNum : 1;
+            var (items, pageCount, totalItems) = await _productRepository.SearchByFilterValuesAsync(
+                storeId, category.CategoryId, rollup, validPairs, pageNum);
+
+            var products = new List<ProductInfo>();
+            foreach (var item in items)
+            {
+                item.FilterValues = await _filterValueRepository.GetByProductAsync(item.ProductId);
+                products.Add(ProductMapper.ToInfo(item, resolution?.ProductType));
+            }
+
+            return new ProductSearchFilteredResult
+            {
+                Products = products,
+                PageNum = pageNum,
+                PageCount = pageCount,
+                TotalItems = totalItems,
+                AppliedProductTypeId = resolution?.ProductType?.ProductTypeId,
+                AppliedFilters = appliedFilters,
+                IgnoredFilterIds = ignoredFilterIds
+            };
         }
     }
 }

@@ -334,6 +334,146 @@ namespace Lofn.ApiTests.Fixtures
             catch (JsonException) { return null; }
         }
 
+        public async Task<long> SeedProductTypeAsync(string name)
+        {
+            var response = await CreateAuthenticatedRequest("producttype/insert")
+                .AllowAnyHttpStatus()
+                .PostJsonAsync(new { name });
+
+            var body = await response.GetStringAsync();
+
+            if ((int)response.StatusCode >= 400)
+            {
+                throw new Exception(
+                    $"SeedProductTypeAsync('{name}') failed with HTTP {(int)response.StatusCode}. " +
+                    $"The endpoint /producttype/insert requires [TenantAdmin] (IsAdmin claim). " +
+                    $"Verify that the test user configured in appsettings.Test.json has IsAdmin = true. " +
+                    $"Response: {Truncate(body, 500)}");
+            }
+
+            if (!TryReadIdProperty(body, "productTypeId", out var id))
+            {
+                throw new Exception($"SeedProductTypeAsync('{name}') returned non-JSON or missing productTypeId. Response: {Truncate(body, 500)}");
+            }
+            return id;
+        }
+
+        public async Task<long> SeedProductTypeFilterAsync(long productTypeId, string label, string dataType, string[]? allowedValues = null)
+        {
+            var payload = allowedValues is null
+                ? (object)new { label, dataType, isRequired = false, displayOrder = 0 }
+                : new { label, dataType, isRequired = false, displayOrder = 0, allowedValues };
+
+            var response = await CreateAuthenticatedRequest($"producttype/{productTypeId}/filter/insert")
+                .AllowAnyHttpStatus()
+                .PostJsonAsync(payload);
+
+            var body = await response.GetStringAsync();
+
+            if ((int)response.StatusCode >= 400)
+            {
+                throw new Exception(
+                    $"SeedProductTypeFilterAsync('{label}') failed with HTTP {(int)response.StatusCode}. " +
+                    $"Response: {Truncate(body, 500)}");
+            }
+
+            if (!TryReadIdProperty(body, "filterId", out var id))
+            {
+                throw new Exception($"SeedProductTypeFilterAsync('{label}') returned non-JSON or missing filterId. Response: {Truncate(body, 500)}");
+            }
+            return id;
+        }
+
+        private static bool TryReadIdProperty(string body, string propertyName, out long id)
+        {
+            id = 0;
+            if (string.IsNullOrWhiteSpace(body)) return false;
+            try
+            {
+                using var doc = JsonDocument.Parse(body);
+                if (doc.RootElement.ValueKind != JsonValueKind.Object) return false;
+                if (!doc.RootElement.TryGetProperty(propertyName, out var prop)) return false;
+                if (!prop.TryGetInt64(out var value)) return false;
+                id = value;
+                return true;
+            }
+            catch (JsonException)
+            {
+                return false;
+            }
+        }
+
+        public async Task<long> SeedCustomizationGroupAsync(
+            long productTypeId,
+            string label,
+            string selectionMode = "single",
+            bool isRequired = false,
+            int displayOrder = 0)
+        {
+            var response = await CreateAuthenticatedRequest($"producttype/{productTypeId}/customization/group/insert")
+                .AllowAnyHttpStatus()
+                .PostJsonAsync(new { label, selectionMode, isRequired, displayOrder });
+
+            var body = await response.GetStringAsync();
+
+            if ((int)response.StatusCode >= 400)
+            {
+                throw new Exception(
+                    $"SeedCustomizationGroupAsync('{label}') failed with HTTP {(int)response.StatusCode}. " +
+                    $"Response: {Truncate(body, 500)}");
+            }
+
+            if (!TryReadIdProperty(body, "groupId", out var id))
+            {
+                throw new Exception($"SeedCustomizationGroupAsync('{label}') returned non-JSON or missing groupId. Response: {Truncate(body, 500)}");
+            }
+            return id;
+        }
+
+        public async Task<long> SeedCustomizationOptionAsync(
+            long groupId,
+            string label,
+            long priceDeltaCents = 0,
+            bool isDefault = false,
+            int displayOrder = 0)
+        {
+            var response = await CreateAuthenticatedRequest($"producttype/customization/group/{groupId}/option/insert")
+                .AllowAnyHttpStatus()
+                .PostJsonAsync(new { label, priceDeltaCents, isDefault, displayOrder });
+
+            var body = await response.GetStringAsync();
+
+            if ((int)response.StatusCode >= 400)
+            {
+                throw new Exception(
+                    $"SeedCustomizationOptionAsync('{label}') failed with HTTP {(int)response.StatusCode}. " +
+                    $"Response: {Truncate(body, 500)}");
+            }
+
+            if (!TryReadIdProperty(body, "optionId", out var id))
+            {
+                throw new Exception($"SeedCustomizationOptionAsync('{label}') returned non-JSON or missing optionId. Response: {Truncate(body, 500)}");
+            }
+            return id;
+        }
+
+        public async Task LinkCategoryToProductTypeAsync(long categoryId, long productTypeId)
+        {
+            var path = IsMarketplaceTenant
+                ? $"category-global/{categoryId}/producttype/{productTypeId}"
+                : $"category/{categoryId}/producttype/{productTypeId}";
+
+            var response = await CreateAuthenticatedRequest(path)
+                .AllowAnyHttpStatus()
+                .PutAsync(null);
+
+            if ((int)response.StatusCode >= 400)
+            {
+                var body = await response.GetStringAsync();
+                throw new Exception($"LinkCategoryToProductTypeAsync failed with {response.StatusCode}. Body: {Truncate(body, 500)}");
+            }
+        }
+
         public IFlurlRequest CreateAuthenticatedRequest(string path) =>
             new Url(BaseUrl).AppendPathSegment(path)
                 .WithHeader("X-Tenant-Id", _tenant)

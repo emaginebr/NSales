@@ -5,6 +5,11 @@ import requests
 from dotenv import load_dotenv
 from openai import OpenAI
 
+from seed_product_types import (
+    seed_product_type_tree,
+    link_category_to_product_type,
+)
+
 load_dotenv(override=True)
 
 NAUTH_EMAIL = os.getenv("NAUTH_EMAIL")
@@ -27,6 +32,71 @@ PHOTOS_DIR = os.path.join(os.path.dirname(__file__), "photos", "hamburgueria")
 os.makedirs(PHOTOS_DIR, exist_ok=True)
 
 ROOT_CATEGORY = "Cardápio"
+
+PRODUCT_TYPES = {
+    "Comida": {
+        "name": "Comida",
+        "filters": [
+            {
+                "label": "Tamanho",
+                "data_type": "enum",
+                "allowed_values": ["Pequeno", "Médio", "Grande"],
+            },
+            {"label": "Vegetariano", "data_type": "boolean"},
+            {"label": "Calorias", "data_type": "integer"},
+        ],
+        "customization_groups": [
+            {
+                "label": "Adicionais",
+                "selection_mode": "multi",
+                "is_required": False,
+                "options": [
+                    {"label": "Bacon Extra", "price_delta_cents": 500},
+                    {"label": "Queijo Extra", "price_delta_cents": 300},
+                    {"label": "Cebola Caramelizada", "price_delta_cents": 200},
+                ],
+            },
+            {
+                "label": "Remover Ingredientes",
+                "selection_mode": "multi",
+                "is_required": False,
+                "options": [
+                    {"label": "Sem Cebola", "price_delta_cents": 0},
+                    {"label": "Sem Alface", "price_delta_cents": 0},
+                    {"label": "Sem Tomate", "price_delta_cents": 0},
+                    {"label": "Sem Picles", "price_delta_cents": 0},
+                ],
+            },
+        ],
+    },
+    "Bebida": {
+        "name": "Bebida",
+        "filters": [
+            {"label": "Volume_ml", "data_type": "integer"},
+            {"label": "Gelada", "data_type": "boolean"},
+            {"label": "Alcoólica", "data_type": "boolean"},
+        ],
+        "customization_groups": [
+            {
+                "label": "Gelo",
+                "selection_mode": "single",
+                "is_required": False,
+                "options": [
+                    {"label": "Com Gelo", "price_delta_cents": 0, "is_default": True},
+                    {"label": "Sem Gelo", "price_delta_cents": 0},
+                ],
+            },
+        ],
+    },
+}
+
+# Mapeia subcategoria → nome do product type (chave em PRODUCT_TYPES).
+CATEGORY_TYPE_LINKS = {
+    "Sanduiches": "Comida",
+    "Acompanhamentos": "Comida",
+    "Sobremesas": "Comida",
+    "Bebidas": "Bebida",
+}
 
 CATEGORIES = {
     "Sanduiches": [
@@ -78,6 +148,22 @@ CATEGORIES = {
                 "- Cebola crispy feita em **tempurá leve**\n"
                 "- Maionese defumada com **páprica e chipotle**\n\n"
                 "> *Crocância em cada mordida — bacon de verdade faz toda a diferença.*"
+            ),
+        },
+        {
+            "name": "Combo Família Smash",
+            "price": 89.90,
+            "discount": 30,
+            "featured": True,
+            "description": (
+                "## Combo Família Smash\n\n"
+                "**Promoção limitada**: 4 Smash Burger Duplos + 2 batatas grandes "
+                "+ 4 refrigerantes 350ml por um preço imbatível.\n\n"
+                "### Inclui\n\n"
+                "- 4x Smash Burger Duplo\n"
+                "- 2x Batata Frita Rústica grande\n"
+                "- 4x Refrigerantes (Coca-Cola, Guaraná, Sprite ou Fanta)\n\n"
+                "> *30% OFF na promoção da semana — perfeito para reunir a família.*"
             ),
         },
         {
@@ -152,6 +238,22 @@ CATEGORIES = {
                 "- Empanamento leve e **extra crocante**\n"
                 "- Molho barbecue com **melaço e defumação natural**\n\n"
                 "> *O acompanhamento clássico americano — impossível comer só um.*"
+            ),
+        },
+        {
+            "name": "Combo Acompanhamentos Trio",
+            "price": 49.90,
+            "discount": 25,
+            "featured": False,
+            "description": (
+                "## Combo Acompanhamentos Trio\n\n"
+                "**25% OFF**: porções de Batata Frita Rústica, Onion Rings e "
+                "Mac & Cheese para dividir.\n\n"
+                "### Inclui\n\n"
+                "- 1x Batata Frita Rústica (300g)\n"
+                "- 1x Onion Rings (12 unidades)\n"
+                "- 1x Mac & Cheese (250g)\n\n"
+                "> *Os três acompanhamentos preferidos da casa por um preço promocional.*"
             ),
         },
         {
@@ -424,7 +526,9 @@ def create_product(token, store_slug, category_id, product):
         },
         headers={**COMMON_HEADERS, "Authorization": f"Bearer {token}"},
     )
-    resp.raise_for_status()
+    if not resp.ok:
+        print(f"     ERRO HTTP {resp.status_code} ao criar '{product['name']}': {resp.text[:600]}")
+        resp.raise_for_status()
     data = resp.json()
     print(f"     -> productId={data['productId']}, slug={data['slug']}")
     return data["productId"], data["slug"]
@@ -497,9 +601,24 @@ def main():
     print(f"\n>> Categoria raiz: {ROOT_CATEGORY}")
     root_category_id = get_or_create_global_category(token, ROOT_CATEGORY)
 
+    print("\n>> Criando product types e suas árvores (filtros + customizações)...")
+    auth_headers = {**COMMON_HEADERS, "Authorization": f"Bearer {token}"}
+    type_id_by_name = {}
+    for type_key, spec in PRODUCT_TYPES.items():
+        type_id_by_name[type_key] = seed_product_type_tree(
+            token, COMMON_HEADERS, LOFN_URL, spec
+        )
+
     for category_name, products in CATEGORIES.items():
         print(f"\n>> Subcategoria: {ROOT_CATEGORY}/{category_name}")
         category_id = get_or_create_global_category(token, category_name, parent_id=root_category_id)
+
+        type_key = CATEGORY_TYPE_LINKS.get(category_name)
+        if type_key and type_key in type_id_by_name:
+            link_category_to_product_type(
+                token, COMMON_HEADERS, LOFN_URL,
+                category_id, type_id_by_name[type_key], marketplace=True,
+            )
 
         for product in products:
             product_id, product_slug = create_product(
@@ -514,6 +633,7 @@ def main():
     print(f"   Categoria raiz: {ROOT_CATEGORY}")
     print(f"   Subcategorias: {len(CATEGORIES)}")
     print(f"   Produtos: {sum(len(p) for p in CATEGORIES.values())}")
+    print(f"   Product types: {list(type_id_by_name.keys())}")
 
 
 if __name__ == "__main__":

@@ -5,6 +5,11 @@ import requests
 from dotenv import load_dotenv
 from openai import OpenAI
 
+from seed_product_types import (
+    seed_product_type_tree,
+    link_category_to_product_type,
+)
+
 load_dotenv(override=True)
 
 NAUTH_EMAIL = os.getenv("NAUTH_EMAIL")
@@ -28,8 +33,110 @@ os.makedirs(PHOTOS_DIR, exist_ok=True)
 
 ROOT_CATEGORY = "Informática"
 
+PRODUCT_TYPES = {
+    "Equipamento": {
+        "name": "Equipamento",
+        "filters": [
+            {"label": "Marca", "data_type": "text"},
+            {"label": "Modelo", "data_type": "text"},
+            {"label": "Garantia_meses", "data_type": "integer"},
+            {
+                "label": "Sistema_Operacional",
+                "data_type": "enum",
+                "allowed_values": ["Windows", "macOS", "Linux", "ChromeOS", "Sem SO"],
+            },
+        ],
+        "customization_groups": [
+            {
+                "label": "Processador",
+                "selection_mode": "single",
+                "is_required": True,
+                "options": [
+                    {"label": "Intel Core i3", "price_delta_cents": 0, "is_default": True},
+                    {"label": "Intel Core i5", "price_delta_cents": 50000},
+                    {"label": "Intel Core i7", "price_delta_cents": 90000},
+                    {"label": "Intel Core i9", "price_delta_cents": 150000},
+                ],
+            },
+            {
+                "label": "Memória RAM",
+                "selection_mode": "single",
+                "is_required": True,
+                "options": [
+                    {"label": "8GB", "price_delta_cents": 0, "is_default": True},
+                    {"label": "16GB", "price_delta_cents": 30000},
+                    {"label": "32GB", "price_delta_cents": 70000},
+                ],
+            },
+            {
+                "label": "Armazenamento",
+                "selection_mode": "single",
+                "is_required": False,
+                "options": [
+                    {"label": "SSD 256GB", "price_delta_cents": 0, "is_default": True},
+                    {"label": "SSD 512GB", "price_delta_cents": 25000},
+                    {"label": "SSD 1TB", "price_delta_cents": 60000},
+                ],
+            },
+        ],
+    },
+    "Componente PC": {
+        "name": "Componente PC",
+        "filters": [
+            {"label": "Marca", "data_type": "text"},
+            {"label": "Modelo", "data_type": "text"},
+            {"label": "Capacidade", "data_type": "text"},
+            {"label": "Garantia_meses", "data_type": "integer"},
+        ],
+    },
+    "Periférico": {
+        "name": "Periférico",
+        "filters": [
+            {"label": "Marca", "data_type": "text"},
+            {"label": "Modelo", "data_type": "text"},
+            {
+                "label": "Conexão",
+                "data_type": "enum",
+                "allowed_values": ["USB", "USB-C", "Bluetooth", "Wireless 2.4GHz", "PS/2"],
+            },
+            {"label": "RGB", "data_type": "boolean"},
+        ],
+    },
+}
+
+# Mapeia subcategoria → nome do product type (chave em PRODUCT_TYPES).
+CATEGORY_TYPE_LINKS = {
+    "Notebook": "Equipamento",
+    "Processadores": "Componente PC",
+    "Memórias RAM": "Componente PC",
+    "HDs": "Componente PC",
+    "Gabinetes": "Componente PC",
+    "Teclados": "Periférico",
+    "Mouses": "Periférico",
+}
+
 CATEGORIES = {
     "Notebook": [
+        {
+            "name": "Notebook Gamer Liquidação",
+            "price": 6499.00,
+            "discount": 35,
+            "featured": True,
+            "description": (
+                "## Notebook Gamer Liquidação\n\n"
+                "**MEGA PROMOÇÃO**: notebook gamer com configuração robusta a "
+                "**35% OFF**. Estoque limitado, modelo de mostruário em estado de novo.\n\n"
+                "### Especificações\n\n"
+                "| Spec | Detalhe |\n"
+                "|------|---------|\n"
+                "| Processador | AMD Ryzen 7 5800H |\n"
+                "| Memória | 16GB DDR4 |\n"
+                "| Armazenamento | 512GB NVMe SSD |\n"
+                "| Vídeo | NVIDIA RTX 3060 6GB |\n"
+                "| Tela | 15.6\" 144Hz IPS |\n\n"
+                "> *Liquidação de mostruário — 35% OFF enquanto durar o estoque.*"
+            ),
+        },
         {
             "name": "MacBook Air M3",
             "price": 12999.00,
@@ -823,6 +930,21 @@ CATEGORIES = {
     ],
     "Mouses": [
         {
+            "name": "Combo Setup Gamer (Mouse + Mousepad XL)",
+            "price": 199.00,
+            "discount": 28,
+            "featured": True,
+            "description": (
+                "## Combo Setup Gamer\n\n"
+                "**28% OFF**: combo com mouse gamer + mousepad XL com bordas costuradas. "
+                "Promoção válida enquanto durarem os estoques.\n\n"
+                "### Inclui\n\n"
+                "- 1x Mouse gamer 7200 DPI\n"
+                "- 1x Mousepad XL 90x40cm com bordas costuradas\n\n"
+                "> *Pacote completo para upgrade rápido do setup, com 28% de desconto.*"
+            ),
+        },
+        {
             "name": "Logitech G502 Hero",
             "price": 299.00,
             "discount": 15,
@@ -1051,7 +1173,9 @@ def create_product(token, store_slug, category_id, product):
         },
         headers={**COMMON_HEADERS, "Authorization": f"Bearer {token}"},
     )
-    resp.raise_for_status()
+    if not resp.ok:
+        print(f"     ERRO HTTP {resp.status_code} ao criar '{product['name']}': {resp.text[:600]}")
+        resp.raise_for_status()
     data = resp.json()
     print(f"     -> productId={data['productId']}, slug={data['slug']}")
     return data["productId"], data["slug"]
@@ -1123,9 +1247,23 @@ def main():
     print(f"\n>> Categoria raiz: {ROOT_CATEGORY}")
     root_category_id = get_or_create_global_category(token, ROOT_CATEGORY)
 
+    print("\n>> Criando product types e suas árvores (filtros + customizações)...")
+    type_id_by_name = {}
+    for type_key, spec in PRODUCT_TYPES.items():
+        type_id_by_name[type_key] = seed_product_type_tree(
+            token, COMMON_HEADERS, LOFN_URL, spec
+        )
+
     for category_name, products in CATEGORIES.items():
         print(f"\n>> Subcategoria: {ROOT_CATEGORY}/{category_name}")
         category_id = get_or_create_global_category(token, category_name, parent_id=root_category_id)
+
+        type_key = CATEGORY_TYPE_LINKS.get(category_name)
+        if type_key and type_key in type_id_by_name:
+            link_category_to_product_type(
+                token, COMMON_HEADERS, LOFN_URL,
+                category_id, type_id_by_name[type_key], marketplace=True,
+            )
 
         for product in products:
             product_id, product_slug = create_product(
@@ -1140,6 +1278,7 @@ def main():
     print(f"   Categoria raiz: {ROOT_CATEGORY}")
     print(f"   Subcategorias: {len(CATEGORIES)}")
     print(f"   Produtos: {sum(len(p) for p in CATEGORIES.values())}")
+    print(f"   Product types: {list(type_id_by_name.keys())}")
 
 
 if __name__ == "__main__":

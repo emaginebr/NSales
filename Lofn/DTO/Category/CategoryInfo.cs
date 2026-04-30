@@ -18,5 +18,14 @@ namespace Lofn.DTO.Category
         public long? ParentCategoryId { get; set; }
         [JsonPropertyName("productCount")]
         public int ProductCount { get; set; }
+
+        [JsonPropertyName("productTypeId")]
+        public long? ProductTypeId { get; set; }
+
+        [JsonPropertyName("appliedProductTypeId")]
+        public long? AppliedProductTypeId { get; set; }
+
+        [JsonPropertyName("appliedProductTypeOriginCategoryId")]
+        public long? AppliedProductTypeOriginCategoryId { get; set; }
     }
 }

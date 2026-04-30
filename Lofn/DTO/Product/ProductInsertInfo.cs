@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace Lofn.DTO.Product
@@ -24,5 +25,8 @@ namespace Lofn.DTO.Product
         public ProductTypeEnum ProductType { get; set; }
         [JsonPropertyName("featured")]
         public bool Featured { get; set; }
+
+        [JsonPropertyName("filterValues")]
+        public IList<ProductFilterValueAssign> FilterValues { get; set; }
     }
 }

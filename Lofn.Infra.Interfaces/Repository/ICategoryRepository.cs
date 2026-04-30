@@ -26,5 +26,9 @@ namespace Lofn.Infra.Interfaces.Repository
         Task<IList<TModel>> ListByScopeAsync(long? storeId);
         Task<IList<TModel>> GetDescendantsAsync(long categoryId);
         Task UpdateManyAsync(IEnumerable<TModel> models);
+
+        // 003-product-type-filters
+        Task<(long? AppliedProductTypeId, long? OriginCategoryId)> GetAppliedProductTypeAsync(long categoryId);
+        Task UpdateProductTypeIdAsync(long categoryId, long? productTypeId);
     }
 }
