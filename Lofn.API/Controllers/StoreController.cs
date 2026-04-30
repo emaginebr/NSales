@@ -69,11 +69,11 @@ namespace Lofn.API.Controllers
                 return BadRequest("No file uploaded");
 
             var fileName = await _fileClient.UploadFileAsync(_tenantResolver.BucketName, file);
-            var model = await _storeService.UploadLogoAsync(storeId, fileName, userSession.UserId);
             var logoUrl = await _fileClient.GetFileUrlAsync(_tenantResolver.BucketName, fileName);
+            var model = await _storeService.UploadLogoAsync(storeId, logoUrl, userSession.UserId);
 
             var info = StoreMapper.ToInfo(model);
-            info.LogoUrl = logoUrl;
+            info.LogoUrl = model.Logo;
             return Ok(info);
         }
 

@@ -157,7 +157,7 @@ public partial class LofnContext : DbContext
                 .HasColumnName("name");
             entity.Property(e => e.OwnerId).HasColumnName("owner_id");
             entity.Property(e => e.Logo)
-                .HasMaxLength(150)
+                .HasMaxLength(1000)
                 .HasColumnName("logo");
             entity.Property(e => e.Status)
                 .HasDefaultValue(1)

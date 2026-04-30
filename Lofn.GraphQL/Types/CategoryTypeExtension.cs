@@ -17,7 +17,7 @@ public class CategoryTypeExtension
         [Service] TenantDbContextFactory dbContextFactory)
     {
         using var context = dbContextFactory.CreateDbContext();
-        return context.Products.Count(p => p.CategoryId == category.CategoryId && p.Status == 1);
+        return context.Products.Count(p => p.CategoryId == category.CategoryId && p.Status == 1 && p.Store.Status == 1);
     }
 
     public async Task<long?> GetAppliedProductTypeId(

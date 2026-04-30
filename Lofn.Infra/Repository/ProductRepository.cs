@@ -106,7 +106,7 @@ namespace Lofn.Infra.Repository
         public async Task<(IEnumerable<ProductModel> Items, int PageCount)> ListActiveByStoreAsync(long storeId, long? categoryId, int pageNum)
         {
             var q = _context.Products
-                .Where(x => x.StoreId == storeId && x.Status == STATUS_ACTIVE);
+                .Where(x => x.StoreId == storeId && x.Status == STATUS_ACTIVE && x.Store.Status == STATUS_ACTIVE);
 
             if (categoryId.HasValue)
                 q = q.Where(x => x.CategoryId == categoryId.Value);
@@ -126,7 +126,7 @@ namespace Lofn.Infra.Repository
         public async Task<IEnumerable<ProductModel>> ListFeaturedByStoreAsync(long storeId, int limit)
         {
             var rows = await _context.Products
-                .Where(x => x.StoreId == storeId && x.Status == STATUS_ACTIVE && x.Featured)
+                .Where(x => x.StoreId == storeId && x.Status == STATUS_ACTIVE && x.Featured && x.Store.Status == STATUS_ACTIVE)
                 .OrderBy(x => x.Name)
                 .Take(limit)
                 .ToListAsync();
@@ -199,6 +199,7 @@ namespace Lofn.Infra.Repository
         {
             var q = _context.Products
                 .Where(p => p.Status == STATUS_ACTIVE
+                    && p.Store.Status == STATUS_ACTIVE
                     && p.CategoryId.HasValue
                     && rollup.Contains(p.CategoryId.Value));
 

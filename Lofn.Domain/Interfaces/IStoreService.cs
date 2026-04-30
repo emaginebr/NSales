@@ -14,7 +14,7 @@ namespace Lofn.Domain.Interfaces
         Task<StoreModel> GetBySlugAsync(string slug);
         Task<StoreModel> InsertAsync(StoreInsertInfo store, long ownerId);
         Task<StoreModel> UpdateAsync(StoreUpdateInfo store, long ownerId);
-        Task<StoreModel> UploadLogoAsync(long storeId, string fileName, long ownerId);
+        Task<StoreModel> UploadLogoAsync(long storeId, string logo, long ownerId);
         Task DeleteAsync(long storeId);
     }
 }

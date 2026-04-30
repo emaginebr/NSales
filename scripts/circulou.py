@@ -1,6 +1,7 @@
 import os
 import sys
 import re
+import hashlib
 import requests
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -31,6 +32,8 @@ COMMON_HEADERS = {
 
 PHOTOS_DIR = os.path.join(os.path.dirname(__file__), "photos", "circulou")
 os.makedirs(PHOTOS_DIR, exist_ok=True)
+
+LOGO_PATH = os.path.join(os.path.dirname(__file__), "logos", "circulou-logo.jpg")
 
 ROOT_CATEGORY = "Roupas"
 
@@ -665,8 +668,27 @@ def create_store(token):
     resp.raise_for_status()
     data = resp.json()
     slug = data["slug"]
-    print(f"   Store criada: slug={slug}, id={data['storeId']}")
-    return slug
+    store_id = data["storeId"]
+    print(f"   Store criada: slug={slug}, id={store_id}")
+    return slug, store_id
+
+
+def upload_logo(token, store_id, logo_path):
+    if not os.path.exists(logo_path):
+        print(f"   AVISO: logo não encontrado em {logo_path} — pulando upload")
+        return
+    print(f"   Fazendo upload do logo para storeId={store_id}...")
+    with open(logo_path, "rb") as f:
+        resp = requests.post(
+            f"{LOFN_URL}/store/uploadLogo/{store_id}",
+            files={"file": (os.path.basename(logo_path), f, "image/jpeg")},
+            headers={**COMMON_HEADERS, "Authorization": f"Bearer {token}"},
+        )
+    if not resp.ok:
+        print(f"   ERRO HTTP {resp.status_code} no upload do logo: {resp.text[:600]}")
+        resp.raise_for_status()
+    data = resp.json()
+    print(f"   Logo OK: logoUrl={data.get('logoUrl')}")
 
 
 def get_or_create_global_category(token, name, parent_id=None):
@@ -733,40 +755,71 @@ def create_product(token, store_slug, category_id, product, filter_id_map=None):
     return data["productId"], data["slug"]
 
 
-def generate_image(product_name, slug):
-    filepath = os.path.join(PHOTOS_DIR, f"{slug}.png")
-    if os.path.exists(filepath):
-        print(f"     Imagem já existe: {slug}.png (cache)")
-        return filepath
-
-    print(f"     Gerando imagem com DALL-E para '{product_name}'...")
-    client = OpenAI(api_key=OPENAI_API_KEY)
-    prompt = (
-        f"Vintage thrift store clothing photo of {product_name}, "
-        "hanging on a wooden hanger against a warm beige textured wall, "
-        "soft natural lighting, retro aesthetic, second-hand fashion editorial, "
-        "high quality, nostalgic atmosphere"
-    )
-    response = client.images.generate(
-        model="dall-e-2",
-        prompt=prompt,
-        size="256x256",
-        n=1,
-    )
-    image_url = response.data[0].url
-    img_data = requests.get(image_url).content
-    with open(filepath, "wb") as f:
-        f.write(img_data)
-    print(f"     Imagem salva: {slug}.png")
-    return filepath
+PROMPT_VARIANTS = [
+    # 0 — foto principal (mantém estilo atual)
+    "hanging on a wooden hanger against a warm beige textured wall, "
+    "soft natural lighting, retro aesthetic, second-hand fashion editorial, "
+    "high quality, nostalgic atmosphere",
+    # 1 — detalhe close-up
+    "close-up macro shot showing fabric texture, stitching and label detail, "
+    "soft natural light, warm tones, second-hand fashion editorial, shallow depth of field",
+    # 2 — ambiente / lifestyle
+    "displayed on a vintage thrift store rack with other clothes softly blurred behind, "
+    "warm ambient lighting, nostalgic atmosphere, editorial fashion photography",
+]
 
 
-def upload_image(token, product_id, filepath):
-    print(f"     Fazendo upload da imagem para productId={product_id}...")
+def _image_count_for(slug):
+    """Determinístico: 2 ou 3 fotos por produto (baseado no hash do slug). Cache estável entre execuções."""
+    return 2 + (int(hashlib.md5(slug.encode("utf-8")).hexdigest(), 16) % 2)
+
+
+def _image_filepath(slug, index):
+    """index=0 → '{slug}.png' (compat com cache antigo); index>=1 → '{slug}-N.png'."""
+    if index == 0:
+        return os.path.join(PHOTOS_DIR, f"{slug}.png")
+    return os.path.join(PHOTOS_DIR, f"{slug}-{index + 1}.png")
+
+
+def generate_images(product_name, slug):
+    """Gera 2-3 fotos variadas (principal / detalhe / ambiente) para um produto. Cache por arquivo."""
+    count = _image_count_for(slug)
+    filepaths = []
+    client = None
+    for i in range(count):
+        filepath = _image_filepath(slug, i)
+        if os.path.exists(filepath):
+            print(f"     Imagem já existe: {os.path.basename(filepath)} (cache)")
+            filepaths.append(filepath)
+            continue
+
+        if client is None:
+            client = OpenAI(api_key=OPENAI_API_KEY)
+
+        variant = PROMPT_VARIANTS[i]
+        prompt = f"Vintage thrift store clothing photo of {product_name}, {variant}"
+        print(f"     Gerando imagem {i + 1}/{count} com DALL-E para '{product_name}'...")
+        response = client.images.generate(
+            model="dall-e-2",
+            prompt=prompt,
+            size="256x256",
+            n=1,
+        )
+        image_url = response.data[0].url
+        img_data = requests.get(image_url).content
+        with open(filepath, "wb") as f:
+            f.write(img_data)
+        print(f"     Imagem salva: {os.path.basename(filepath)}")
+        filepaths.append(filepath)
+    return filepaths
+
+
+def upload_image(token, product_id, filepath, sort_order=0):
+    print(f"     Upload '{os.path.basename(filepath)}' (sortOrder={sort_order}) → productId={product_id}...")
     with open(filepath, "rb") as f:
         resp = requests.post(
             f"{LOFN_URL}/image/upload/{product_id}",
-            params={"sortOrder": 0},
+            params={"sortOrder": sort_order},
             files={"file": (os.path.basename(filepath), f, "image/png")},
             headers={**COMMON_HEADERS, "Authorization": f"Bearer {token}"},
         )
@@ -783,20 +836,21 @@ def main():
     masked_key = f"{OPENAI_API_KEY[:3]}...{OPENAI_API_KEY[-4:]}"
     print(f">> OpenAI API Key: {masked_key}")
 
-    # Fase 1: Gerar todas as imagens via DALL-E
+    # Fase 1: Gerar todas as imagens via DALL-E (2-3 por produto)
     print("\n========== FASE 1: Gerando imagens ==========\n")
     image_map = {}
     for category_name, products in CATEGORIES.items():
         print(f">> Categoria: {category_name}")
         for product in products:
             slug = slugify(product["name"])
-            filepath = generate_image(product["name"], slug)
-            image_map[product["name"]] = filepath
+            filepaths = generate_images(product["name"], slug)
+            image_map[product["name"]] = filepaths
 
     # Fase 2: Criar dados na API do Lofn
     print("\n========== FASE 2: Criando dados na API ==========\n")
     token = login()
-    store_slug = create_store(token)
+    store_slug, store_id = create_store(token)
+    upload_logo(token, store_id, LOGO_PATH)
 
     print(f"\n>> Categoria raiz: {ROOT_CATEGORY}")
     root_category_id = get_or_create_global_category(token, ROOT_CATEGORY)
@@ -830,8 +884,8 @@ def main():
                 token, store_slug, category_id, product, filter_id_map
             )
 
-            filepath = image_map[product["name"]]
-            upload_image(token, product_id, filepath)
+            for sort_order, filepath in enumerate(image_map[product["name"]]):
+                upload_image(token, product_id, filepath, sort_order)
 
     print("\n>> Seed completo!")
     print(f"   Store: {store_slug}")

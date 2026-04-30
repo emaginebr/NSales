@@ -108,7 +108,7 @@ namespace Lofn.Domain.Services
             return await _storeRepository.UpdateAsync(model);
         }
 
-        public async Task<StoreModel> UploadLogoAsync(long storeId, string fileName, long ownerId)
+        public async Task<StoreModel> UploadLogoAsync(long storeId, string logo, long ownerId)
         {
             var existing = await _storeRepository.GetByIdAsync(storeId);
             if (existing == null)
@@ -117,7 +117,7 @@ namespace Lofn.Domain.Services
             if (existing.OwnerId != ownerId)
                 throw new UnauthorizedAccessException("Access denied: user is not the owner of this store");
 
-            existing.Logo = fileName;
+            existing.Logo = logo;
             return await _storeRepository.UpdateAsync(existing);
         }
 

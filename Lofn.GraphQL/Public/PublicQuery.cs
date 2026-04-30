@@ -24,7 +24,7 @@ public class PublicQuery
     [UseFiltering]
     [UseSorting]
     public IQueryable<Product> GetProducts(LofnContext context)
-        => context.Products.Where(p => p.Status == 1);
+        => context.Products.Where(p => p.Status == 1 && p.Store.Status == 1);
 
     [UseOffsetPaging]
     [UseProjection]
@@ -32,8 +32,8 @@ public class PublicQuery
     [UseSorting]
     public IQueryable<Category> GetCategories(LofnContext context, [Service] ITenantResolver tenantResolver)
         => tenantResolver.Marketplace
-            ? context.Categories.Where(c => c.StoreId == null && c.Products.Any(p => p.Status == 1))
-            : context.Categories.Where(c => c.Products.Any(p => p.Status == 1));
+            ? context.Categories.Where(c => c.StoreId == null && c.Products.Any(p => p.Status == 1 && p.Store.Status == 1))
+            : context.Categories.Where(c => c.Products.Any(p => p.Status == 1 && p.Store.Status == 1));
 
     [UseProjection]
     public IQueryable<Store> GetStoreBySlug(LofnContext context, string slug)
@@ -44,7 +44,7 @@ public class PublicQuery
     [UseFiltering]
     [UseSorting]
     public IQueryable<Product> GetFeaturedProducts(LofnContext context, string storeSlug)
-        => context.Products.Where(p => p.Status == 1 && p.Featured && p.Store.Slug == storeSlug);
+        => context.Products.Where(p => p.Status == 1 && p.Featured && p.Store.Slug == storeSlug && p.Store.Status == 1);
 
     public async Task<IList<CategoryTreeNodeInfo>> GetCategoryTree(
         LofnContext context,

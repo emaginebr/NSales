@@ -1,7 +1,5 @@
 using HotChocolate.Types;
-using Lofn.Domain.Interfaces;
 using Lofn.Infra.Context;
-using zTools.ACL.Interfaces;
 
 namespace Lofn.GraphQL.Types;
 
@@ -14,13 +12,10 @@ public class StoreTypeExtension : ObjectTypeExtension<Store>
         descriptor
             .Field("logoUrl")
             .Type<StringType>()
-            .Resolve(async ctx =>
+            .Resolve(ctx =>
             {
                 var store = ctx.Parent<Store>();
-                if (string.IsNullOrEmpty(store.Logo)) return null;
-                var fileClient = ctx.Service<IFileClient>();
-                var tenantResolver = ctx.Service<ITenantResolver>();
-                return await fileClient.GetFileUrlAsync(tenantResolver.BucketName, store.Logo);
+                return string.IsNullOrEmpty(store.Logo) ? null : store.Logo;
             });
     }
 }
