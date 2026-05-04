@@ -96,6 +96,8 @@ namespace Lofn.API
                     }
                 });
 
+            app.UseMiddleware<RequestLoggingMiddleware>();
+
             app.UseRouting();
             app.UseCors("MyPolicy");
 

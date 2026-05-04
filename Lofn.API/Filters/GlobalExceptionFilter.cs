@@ -20,8 +20,17 @@ namespace Lofn.API.Filters
 
         public void OnException(ExceptionContext context)
         {
-            if (context.Exception is UnauthorizedAccessException)
+            var method = context.HttpContext.Request.Method;
+            var path = context.HttpContext.Request.Path;
+
+            if (context.Exception is UnauthorizedAccessException unauthEx)
             {
+                _logger.LogInformation(unauthEx,
+                    "Unauthorized access on {Method} {Path}: {Message}",
+                    method, path, unauthEx.Message);
+                Log.Information(unauthEx,
+                    "Unauthorized access on {Method} {Path}: {Message}",
+                    method, path, unauthEx.Message);
                 context.Result = new ForbidResult();
                 context.ExceptionHandled = true;
                 return;
@@ -30,14 +39,18 @@ namespace Lofn.API.Filters
             if (context.Exception is ValidationException validationEx)
             {
                 var errors = validationEx.Errors.Select(e => e.ErrorMessage).ToList();
+                _logger.LogWarning(validationEx,
+                    "Validation failed on {Method} {Path}. Errors: {Errors}",
+                    method, path, string.Join(" | ", errors));
+                Log.Warning(validationEx,
+                    "Validation failed on {Method} {Path}. Errors: {Errors}",
+                    method, path, string.Join(" | ", errors));
                 context.Result = new BadRequestObjectResult(new { success = false, errors });
                 context.ExceptionHandled = true;
                 return;
             }
 
             var chain = FlattenExceptionChain(context.Exception);
-            var method = context.HttpContext.Request.Method;
-            var path = context.HttpContext.Request.Path;
 
             // Belt-and-suspenders logging:
             // 1) ILogger<T> via Serilog (host pipeline) — primary path.

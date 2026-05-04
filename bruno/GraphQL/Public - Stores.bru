@@ -10,6 +10,10 @@ post {
   auth: none
 }
 
+headers {
+  X-Tenant-Id: monexup
+}
+
 body:graphql {
   {
     stores(skip: 0, take: 2) {
